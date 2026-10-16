@@ -1,5 +1,6 @@
 
 function ini=CONECTI()
+% CONECTI  Define as conectividades de cada barra do reticulado.
 global  INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
 global ACX ACY ACZ FRX FRY FRZ FX FY FZ MAS MSS CN ENR
 global EDG E1 E2 LI DEQB F YNGB GFRB LCRB EPRB EP SS EM

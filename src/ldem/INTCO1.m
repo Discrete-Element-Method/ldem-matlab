@@ -1,5 +1,7 @@
 
 function ini=INTCO1 (MX,NX,LX,ST)
+% INTCO1  Define a conectividade das barras internas dos módulos cúbicos.
+% Chamada por CONECTI.
 global  INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
 global ACX ACY ACZ FRX FRY FRZ FX FY FZ MAS MSS CN ENR
 global EDG E1 E2 LI DEQB F YNGB GFRB LCRB EPRB EP SS EM

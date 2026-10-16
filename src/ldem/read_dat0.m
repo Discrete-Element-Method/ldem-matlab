@@ -1,5 +1,6 @@
 
 function ini= read_dat0()
+% READ_DAT0  Lê os dados de entrada dos arquivos DATNAME(I).
 global  INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
 global ACX ACY ACZ FRX FRY FRZ FX FY FZ MAS MSS CN ENR
 global EDG E1 E2 LI DEQB F YNGB GFRB LCRB EPRB EP SS EM

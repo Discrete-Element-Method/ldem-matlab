@@ -1,5 +1,7 @@
 
 function ini=ENERG2(fid_EnB)
+% ENERG2  Avalia o balanço de energia a cada passo de integração.
+% Grava as energias (externa, interna, cinética, elástica, dissipada) em fid_EnB.
 global  INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
 global ACX ACY ACZ FRX FRY FRZ FX FY FZ MAS MSS CN ENR
 global EDG E1 E2 LI DEQB F YNGB GFRB LCRB EPRB EP SS EM
