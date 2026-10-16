@@ -1,3 +1,8 @@
+% boris
+a= 1
+b = 2
+
+
 clear all
 clc
 global INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
@@ -47,7 +52,7 @@ PR9=1; % SIM01 file inside CALRES
 %      &     STATUS='OLD')
 %   
 % !
-% !     READAT -----> Lê os dados que estão no arquivo DATA0.DAT
+% !     READAT -----> L os dados que esto no arquivo DATA0.DAT
       % CALL READAT0
       ini=read_dat0() % read the input data saved in DATA0.DAT
       'ini=read_dat0()'
@@ -56,7 +61,7 @@ PR9=1; % SIM01 file inside CALRES
 %     Close (10)
 % !
 % !--------------------------------------------------------------------------
-% !  PREPARAÇÃO DAS VARIÁVEIS E CHAMAMENTO DAS SUBROTINAS PRELIMINARES
+% !  PREPARAO DAS VARIVEIS E CHAMAMENTO DAS SUBROTINAS PRELIMINARES
 % !--------------------------------------------------------------------------
 % !
 % 
@@ -74,16 +79,16 @@ ini=COORD() % Build the nodes coordinate of prism  with MxNxL modules
 % !
 % 
 % 
-% !     IMPERF -----> Impõe uma aleatoriedade (imperfeição) às coordenadas
+% !     IMPERF -----> Impe uma aleatoriedade (imperfeio) s coordenadas
 %       CALL IMPERF
 ini=IMPERF()% !
 'ini=IMPERF()'
-% !     BOUND ------> Determina as condições de contorno da estrutura
+% !     BOUND ------> Determina as condies de contorno da estrutura
 %       CALL BOUND
 ini=BOUND()% !
 'ini=BOUND()'
 % !
-% !     NODMASS ----> Atribui um valor de massa a cada nó da estrutura
+% !     NODMASS ----> Atribui um valor de massa a cada n da estrutura
 %       CALL NODMASS
 ini=NODMASS()% !
 'ini=NODMASS()'
@@ -93,7 +98,7 @@ ini=NODMASS()% !
 ini=CONECTI()% !
 'ini=CONECTI()'
 % !
-% !     CALAUX -----> Cálculos auxiliares e determinação compr. cada barra
+% !     CALAUX -----> Clculos auxiliares e determinao compr. cada barra
 %       CALL CALAUX
 ini=CALAUX()% !
 
@@ -159,7 +164,7 @@ ini=CALCOEV() % computation of Mean value and variation
 % 'ini=CALCOEV()'  ( We need to implement)
 % 
 % !--------------------------------------------------------------------------
-% !  ABRINDO OS ARQUIVOS DE SAÍDA
+% !  ABRINDO OS ARQUIVOS DE SADA
 % !--------------------------------------------------------------------------
 fid_CON = -1; fid_AN1 = -1; fid_RES = -1;
 fid_DIS = -1; fid_POS = -1; fid_ENE = -1;
@@ -209,7 +214,7 @@ if OU9 > 0, fid_EnB = fopen('Energia_Barra.TXT','w'); end
 %      &        STATUS='UNKNOWN')
 %    !--------------------------------------------------------------------------
 %       IF (OU2.GT.0) THEN
-% !     WRICON -----> Gravação de informação de entrada no arquivo CONNAME
+% !     WRICON -----> Gravao de informao de entrada no arquivo CONNAME
 %       CALL WRICON
 %    ! We close(2) in the end of the Main program 
 %       END IF
@@ -226,7 +231,7 @@ if OU9 > 0, fid_EnB = fopen('Energia_Barra.TXT','w'); end
 % !
 % 
 % !--------------------------------------------------------------------------
-% !  GRAVAÇÃO DO PRIMEIRO ARQUIVO DO ANSYS
+% !  GRAVAO DO PRIMEIRO ARQUIVO DO ANSYS
 % !--------------------------------------------------------------------------
 %         I3=1
 %         OPEN (UNIT=13,ACCESS='SEQUENTIAL',FILE=ARMANS(I3),&
@@ -251,7 +256,7 @@ I3 = 1;
 if OU3 > 0
 ARMANS = cell(floor(NSTEP/OU3) + 1, 1);
 for III = 1:floor(NSTEP/OU3) + 1
-ARMANS{III} = strtrim(fgetl(fid_AN1));   % lê uma linha e remove espaços
+ARMANS{III} = strtrim(fgetl(fid_AN1));   % l uma linha e remove espaos
     end
        fclose(fid_AN1);
 
@@ -270,9 +275,9 @@ end
 
 % 
 % !--------------------------------------------------------------------------
-% !  CONCLUIU-SE A MONTAGEM DO MODELO. INICIA-SE A INTEGRAÇÃO PASSO A PASSO
+% !  CONCLUIU-SE A MONTAGEM DO MODELO. INICIA-SE A INTEGRAO PASSO A PASSO
 % !--------------------------------------------------------------------------
-% !  LOOP PRINCIPAL DE INTEGRAÇÃO
+% !  LOOP PRINCIPAL DE INTEGRAO
 % !--------------------------------------------------------------------------
 % 
 % 
@@ -286,14 +291,14 @@ end
 %       DO 60 STEP = STEPP,NSTEP
 % !
 % !--------------------------------------------------------------------------
-% !  Escreve uma informação de controle na tela em cada passo de integração
+% !  Escreve uma informao de controle na tela em cada passo de integrao
 % !--------------------------------------------------------------------------
 %       WRITE (*,40) STEP
 % 40    FORMAT ('   STEP     ======================>  ',I7,' / ',I2)
 % 
 % !
 % !--------------------------------------------------------------------------
-% !  Controle de mudança de amortecimento
+% !  Controle de mudana de amortecimento
 % !--------------------------------------------------------------------------
 %       IF (STEP.EQ.NDAMF) THEN
 %         DF1=DF2
@@ -308,14 +313,14 @@ end
 %       WRITE (*,50) TIME
 % 50    FORMAT ('   TIME     ======================>  ',F12.8)
 %-------------------------------------------------------------------------
-% !  Avaliação das forças e determinação da nova configuração
+% !  Avaliao das foras e determinao da nova configurao
 % !--------------------------------------------------------------------------
-% !     CALOAD -----> Cálculo das cargas sobre os nós
+% !     CALOAD -----> Clculo das cargas sobre os ns
 %       CALL CALOAD
 %       write(*,*) 'caload' 
 % !
 % !  Especifica-se a carga em cada tempo e calcula-se a energia externa
-% !  fornecida ao sistema. Em função do exemplo tem-se que modificar esta
+% !  fornecida ao sistema. Em funo do exemplo tem-se que modificar esta
 % !  subrotina.
 % !
 % !--------------------------------------------------------------------------
@@ -325,13 +330,13 @@ end
 %  write(*,*) 'cabar' 
 % !
 % !--------------------------------------------------------------------------
-% !     IGN012 -----> Cálculo das coordenadas no tempo TIME aplicando
-% !                   diferenças finitas centrais na equação do movimento
+% !     IGN012 -----> Clculo das coordenadas no tempo TIME aplicando
+% !                   diferenas finitas centrais na equao do movimento
 %       CALL IGN012
-% !  Nesta subrotina realiza-se a integração via método das diferenças
-% !  finitas centrais. Tem-se um loop sobre os nós. Entra-se com as forças
-% !  calculadas em CABAR e com a configuração do sistema nos dois tempos
-% !  anteriores e determina-se a configuração no tempo novo.
+% !  Nesta subrotina realiza-se a integrao via mtodo das diferenas
+% !  finitas centrais. Tem-se um loop sobre os ns. Entra-se com as foras
+% !  calculadas em CABAR e com a configurao do sistema nos dois tempos
+% !  anteriores e determina-se a configurao no tempo novo.
 % !
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -373,9 +378,9 @@ for STEP = STEPP:NSTEP
    ini=IGN012();     % central finite differences integration
    'ini=IGN012()'
 % !--------------------------------------------------------------------------
-% !  Geração dos arquivos de saída
+% !  Gerao dos arquivos de sada
 % !--------------------------------------------------------------------------
-% !  SAÍDA - VISUALIZAÇÃO NO ANSYS
+% !  SADA - VISUALIZAO NO ANSYS
 % !--------------------------------------------------------------------------
 %      IF (PR3.EQ.OU3) THEN
 %         I3=I3+1
@@ -390,33 +395,33 @@ for STEP = STEPP:NSTEP
 %       END IF
 % !
 % !--------------------------------------------------------------------------
-% !  SAÍDA - REAÇÕES NODAIS
+% !  SADA - REAES NODAIS
 % !--------------------------------------------------------------------------
 %       ! write(*,*) 'antes de calres'
-% !      CALRES -----> Cálculo de resultados que serão gravados em RESNAME
+% !      CALRES -----> Clculo de resultados que sero gravados em RESNAME
 %        CALL CALRES
 %       !  write(*,*) 'calres' 
 %       !
 % !--------------------------------------------------------------------------
-% !  SAÍDA - CONTROLE DE DESLOCAMENTOS, VELOCIDADES E ACELERAÇÕES
+% !  SADA - CONTROLE DE DESLOCAMENTOS, VELOCIDADES E ACELERAES
 % !--------------------------------------------------------------------------
 % !
 %       IF (PR67.EQ.OU6) THEN
 %         CALL WRIDIPO
 % !!  Esta subrotina grava os arquivos *.dis e *.pos que tem os valores dos
-% !  deslocamentos, velocidades e acelerações nos nós de controle.
+% !  deslocamentos, velocidades e aceleraes nos ns de controle.
 % !
 %         PR67=1
 %       ELSE
 %         PR67=PR67+1
 %       END IF
 % !--------------------------------------------------------------------------
-% !  SAÍDA - AVALIAÇÃO DA ENERGIA
+% !  SADA - AVALIAO DA ENERGIA
 % !--------------------------------------------------------------------------
 % !
-% !     ENERG2 -----> Cálculo das energias que serão gravadas em ENENAME
+% !     ENERG2 -----> Clculo das energias que sero gravadas em ENENAME
 %       CALL ENERG2
-% !  Esta subrotina calcula em cada tempo as energias que estão se
+% !  Esta subrotina calcula em cada tempo as energias que esto se
 % !  transformando no processo.
 % !
 %       IF (PR8.EQ.OU8) THEN
