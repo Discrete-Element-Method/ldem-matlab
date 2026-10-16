@@ -1,6 +1,6 @@
 # LDEM-MATLAB
 
-[English](#english) · [Español](#español)
+[English](#english) · [Português (BR)](#português-br) · [Español](#español)
 
 ---
 
@@ -53,6 +53,56 @@ convention.
 ### Citation
 
 See [CITATION.cff](CITATION.cff). License: [MIT](LICENSE).
+
+---
+
+## Português (BR)
+
+Implementação em MATLAB do **Método dos Elementos Discretos do tipo Treliça
+(LDEM)**: o meio contínuo é representado por um reticulado regular de nós e
+barras (módulos cúbicos com diagonais) e a dinâmica é integrada de forma
+explícita. Aplicações típicas: simulação de fratura e dano em materiais
+quase-frágeis (concreto, rochas).
+
+### Estrutura do repositório
+
+| Caminho | Conteúdo |
+|---------|----------|
+| `src/ldem/` | Código-fonte LDEM (`.m`) |
+| `tests/` | Suíte de testes com `matlab.unittest` |
+| `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
+| `examples/` | Como executar as simulações de exemplo |
+
+### Início rápido
+
+```matlab
+>> setup_path          % adiciona src/ldem ao path do MATLAB
+>> main                % executa a simulação padrão
+```
+
+Executar os testes:
+
+```matlab
+>> addpath tests
+>> run_tests
+```
+
+### Documentação
+
+A referência da API é gerada automaticamente a partir dos comentários dos
+`.m` com Sphinx e `sphinxcontrib-matlabdomain`:
+
+```bash
+pip install -r docs/requirements.txt
+sphinx-build -b html docs/source docs/build/html
+```
+
+Os comentários do código estão em português; os guias estão em espanhol e
+inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
+
+### Citação
+
+Veja [CITATION.cff](CITATION.cff). Licença: [MIT](LICENSE).
 
 ---
 
