@@ -1,0 +1,65 @@
+
+  ********************* DEM *********************  
+
+  Discrete Element Method  
+
+  All Rights Reserved  -  PPGEC / UFRGS  
+
+           DATA CONTROL OUTPUT           
+           *******************           
+
+  Simulation   =======================>           0
+
+   Test simulated......................          102
+   Truss modules in X-direction........          100
+   Truss modules in Y-direction........           40
+   Truss modules in Z-direction........           20
+
+   Principal nodes number..............       166961
+   Symmetry nodes number...............       166961
+   Total nodes number..................       166961
+   Principal bars number...............      1126960
+   Symmetry bars number................      1126960
+   Total bars number...................      1126960
+
+  Control node number.................             1
+  Control node number.................             2
+  Control node number.................             3
+  Control node number.................             4
+  Control node number.................             5
+
+
+   Initial damping factor.............. 2.500000E+04
+   Final damping factor................ 2.500000E+04
+   Time of damping change.............. 1.500000E-02
+   Stiffness proportional damping...... 0.000000E+00
+
+   Truss module length................. 3.000000E-03
+   Time increment...................... 2.000000E-07
+   Total time of integration........... 3.000000E-02
+
+   Poissons ratio...................... 2.500000E-01
+   Mass density........................ 2.000000E+03
+   Total mass.......................... 4.320000E+00
+   Youngs modulus...................... 3.200000E+10
+   Element normal stiffness............ 1.152000E+05
+   Element diagonal stiffness.......... 1.995323E+05
+   Specific fracture energy............ 5.000000E+01
+   equivalent d                ........ 2.800000E-02
+   Proportionality mean strain......... 2.312311E-04
+   Critical value for Lc............... 1.939000E-02
+   Kr value for normal bars............ 6.463333E+00
+   Delta coefficient................... 1.125000E+00
+   Alfa coefficient.................... 4.000000E-01
+
+   Maximum value for ep................ 0.000000E+00
+   Minimum value for ep................ 9.900000E+99
+
+
+             GENERAL REMARKS             
+             ***************             
+
+   Mean ep............................. 2.263162E-04
+   Coefficient of variation for ep..... 0.000000E+00
+
+
