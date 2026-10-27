@@ -26,70 +26,7 @@ BDZ=zeros(NNT,1);
 %!--------------------------------------------------------------------------
 %!
 
-
-% 
-% !     
-% !     TEST = 101
-%       IF (TEST.EQ.101) THEN  
-%           
-%                DO I=1,NNT
-%            
-%             Logic2=(u0(I).LT.(0.51*LCO)).AND.(u0(I).GT.(0.49*LCO))
-%           
-%           IF (Logic2) THEN
-%             BDX(I)=1
-%            ! BDY(I)=1
-%            ! BDZ(I)=1
-%        !     write(*,*) "nobound=",I
-%           END IF
-%        
-%           Logic2=(u0(I).GT.(M1-0.51*LCO)).AND.(u0(I).LT.(M1-0.49*LCO))
-%           
-%           IF (Logic2) THEN
-%             BDX(I)=1
-%            ! BDY(I)=1
-%            ! BDZ(I)=1
-%        !     write(*,*) "nobound=",I
-%           END IF
-%           
-%           END DO
-%          END IF
-% 
-%       IF (TEST.EQ.102) THEN
-%           
-%                DO I=1,NNT
-%             Logic1=(v0(I).GT.(0.49*LCO)).AND.(v0(I).LT.(0.51*LCO))
-%             Logic2=(u0(I).LT.(4.51*LCO)).AND.(u0(I).GT.(4.49*LCO))
-%             IF (Logic1.AND.Logic2) THEN
-%             BDX(I)=1
-%             BDY(I)=1
-%            epsL! BDZ(I)=1
-%     !       write(*,*) "nobound=",I
-%           END IF
-%         Logic1=(u0(I).GT.((M1-4.51)*LCO)).AND.(u0(I).LT.((M1-4.49)*LCO))
-%         Logic2=(v0(I).LT.(0.51*LCO)).AND.(v0(I).GT.(0.49*LCO)) 
-%          IF(Logic1.AND.Logic2) THEN
-%             BDy(I)=1
-%           !  BDZ(I)=1
-%  !            write(*,*) "nobound2=",I
-%          END IF
-%                END DO
-%          DO I=1,NNT
-%          LOGIC1=u0(I).LT.((M1-33.49)*LCO).AND.u0(I).GT.((M1-33.51)*LCO)
-%          LOGIC3=v0(I).LT.((N1-0.49)*LCO).AND.v0(I).GT.((N1-0.51)*LCO)
-%          LOGIC2=u0(I).LT.((33.51)*LCO).AND.u0(I).GT.((33.49)*LCO)     
-%          IF(LOGIC1.AND.LOGIC3)THEN
-%             BDy(I)=1
-%          endif
-%           IF(LOGIC2.AND.LOGIC3)THEN
-%            BDy(I)=1
-%          endif
-%                             
-%            END DO
-%          END IF
-%       RETURN
-%       END
-%        
+  
 if TEST == 101
     
     % Masks for the two conditions (operate on all elements at once)
