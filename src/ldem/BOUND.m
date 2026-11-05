@@ -41,16 +41,17 @@ end
 if TEST == 102
     
     % --- First block of conditions (replaces the first loop) ---
-    mask1 = (V0 > (0.49 * LCO)) & (V0 < (0.51 * LCO)) & ...
-            (U0 < (4.51 * LCO)) & (U0 > (4.49 * LCO));
+     mask1 = (W0 > (0.49 * LCO)) & (W0 < (0.51 * LCO)) ;
+     mask2=(W0 < ((L1-0.49)*LCO)) & (W0 > ((L1-0.51)*LCO));
     
-    mask2 = (U0 > ((M1 - 4.51) * LCO)) & (U0 < ((M1 - 4.49) * LCO)) & ...
-            (V0 < (0.51 * LCO)) & (V0 > (0.49 * LCO));
-    
+  
     % Apply the assignments
-    BDX(mask1) = 1;
-    BDY(mask1) = 1;
-    BDY(mask2) = 1;  % Originally BDy -> unified to BDY (Fortran is case-insensitive)
+     BDX(mask1) = 1;
+     BDY(mask1) = 1;
+     BDZ(mask1) = 1;
+     BDX( mask2) = 1;
+     BDY( mask2) = 1;
+     BDZ( mask2) = 1;
     
     
     % --- S econd block of conditions (replaces the second loop) ---

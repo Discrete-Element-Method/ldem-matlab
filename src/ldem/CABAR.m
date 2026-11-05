@@ -114,7 +114,7 @@ global STRAIN STRESS SEED
 %  PARAMETER (INN=1.2E6, INB=6E6, IRU=20, INCON=8)
 %  These parameters are not used in this routine.
 %--------------------------------------------------------------------------
-NUMBAR = 7014;
+NUMBAR = 14398;
 
 for B = 1:NBT
         NOI = CN(2*B - 1);
