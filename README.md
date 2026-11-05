@@ -16,7 +16,8 @@ quasi-brittle materials (concrete, rocks).
 
 | Path | Content |
 |------|---------|
-| `legacy/` | Original LDEM routines (frozen reference, being refactored into `src/+ldem`) |
+| `src/+ldem/` | The `ldem` package (refactored code) |
+| `legacy/` | Original LDEM routines (frozen reference used by the regression tests) |
 | `tests/` | `matlab.unittest` test suite |
 | `docs/` | Sphinx documentation (English and Spanish), API generated from the `.m` files |
 | `examples/` | How to run the example simulations |
@@ -24,8 +25,8 @@ quasi-brittle materials (concrete, rocks).
 ### Quick start
 
 ```matlab
->> setup_path          % adds legacy/ to the MATLAB path
->> main                % runs the default simulation
+>> setup_path          % adds src/ and legacy/ to the MATLAB path
+>> run('examples/tension_101/runTension.m')   % small example, output in examples/tension_101/output
 ```
 
 Run the tests:
@@ -68,7 +69,8 @@ quase-frágeis (concreto, rochas).
 
 | Caminho | Conteúdo |
 |---------|----------|
-| `legacy/` | Rotinas LDEM originais (referência congelada, em refatoração para `src/+ldem`) |
+| `src/+ldem/` | O pacote `ldem` (código refatorado) |
+| `legacy/` | Rotinas LDEM originais (referência congelada usada nos testes de regressão) |
 | `tests/` | Suíte de testes com `matlab.unittest` |
 | `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
 | `examples/` | Como executar as simulações de exemplo |
@@ -76,8 +78,8 @@ quase-frágeis (concreto, rochas).
 ### Início rápido
 
 ```matlab
->> setup_path          % adiciona legacy/ ao path do MATLAB
->> main                % executa a simulação padrão
+>> setup_path          % adiciona src/ e legacy/ ao path do MATLAB
+>> run('examples/tension_101/runTension.m')   % exemplo pequeno, saída em examples/tension_101/output
 ```
 
 Executar os testes:
@@ -118,7 +120,8 @@ cuasi-frágiles (hormigón, rocas).
 
 | Ruta | Contenido |
 |------|-----------|
-| `legacy/` | Rutinas LDEM originales (referencia congelada, en refactorización hacia `src/+ldem`) |
+| `src/+ldem/` | El paquete `ldem` (código refactorizado) |
+| `legacy/` | Rutinas LDEM originales (referencia congelada usada en los tests de regresión) |
 | `tests/` | Suite de tests con `matlab.unittest` |
 | `docs/` | Documentación Sphinx (español e inglés), API generada desde los `.m` |
 | `examples/` | Cómo ejecutar las simulaciones de ejemplo |
@@ -126,8 +129,8 @@ cuasi-frágiles (hormigón, rocas).
 ### Inicio rápido
 
 ```matlab
->> setup_path          % agrega legacy/ al path de MATLAB
->> main                % ejecuta la simulación por defecto
+>> setup_path          % agrega src/ y legacy/ al path de MATLAB
+>> run('examples/tension_101/runTension.m')   % ejemplo pequeño, salida en examples/tension_101/output
 ```
 
 Ejecutar los tests:

@@ -212,6 +212,20 @@ classdef Parameters
             end
         end
 
+        function s = toStruct(obj)
+            %TOSTRUCT  Convert the parameters (and derived values) to a plain struct.
+            %
+            %   s = p.toStruct() returns a struct with one field per property,
+            %   derived values included. Unlike the object it can be loaded
+            %   from a MAT-file without the ldem package on the path, so it
+            %   is what ldem.runSimulation stores in the results.
+            names = properties(obj);
+            s = struct();
+            for k = 1:numel(names)
+                s.(names{k}) = obj.(names{k});
+            end
+        end
+
         function value = get.nSteps(obj)
             value = round(obj.totalTime / obj.dt);
         end

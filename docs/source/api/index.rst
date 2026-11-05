@@ -4,27 +4,39 @@ API reference / Referencia de la API
 Generated automatically from the comments of the ``.m`` files /
 Generada automáticamente desde los comentarios de los ``.m``.
 
-Refactored package ``ldem`` / Paquete refactorizado ``ldem``
-------------------------------------------------------------
+The ``ldem`` package (``src/+ldem``) is the refactored code. It replaces the
+routines of ``legacy/`` step by step; the original routines are kept as a
+frozen reference and are not part of this API (their known problems are in
+``legacy/KNOWN_ISSUES.md``) / El paquete ``ldem`` (``src/+ldem``) es el código
+refactorizado. Las rutinas originales de ``legacy/`` se conservan como
+referencia congelada y no forman parte de esta API.
 
-New code in ``src/+ldem`` (English comments). It replaces the routines of
-``legacy/`` step by step; see ``legacy/KNOWN_ISSUES.md``.
+Running a simulation / Ejecutar una simulación
+----------------------------------------------
 
 .. mat:module:: ldem
 
-Parameters / Parámetros
-~~~~~~~~~~~~~~~~~~~~~~~
-
+.. mat:autofunction:: ldem.runSimulation
 .. mat:autoclass:: ldem.Parameters
    :members:
+.. mat:autofunction:: ldem.version
+
+Input and output / Entrada y salida
+-----------------------------------
 
 .. mat:module:: ldem.io
 
 .. mat:autofunction:: ldem.io.readInputFile
 .. mat:autofunction:: ldem.io.readRandomField
+.. mat:autofunction:: ldem.io.saveResults
+.. mat:autofunction:: ldem.io.exportAnsys
+.. mat:autofunction:: ldem.io.exportVtk
+.. mat:autofunction:: ldem.io.writePvd
+.. mat:autoclass:: ldem.io.SnapshotWriter
+   :members:
 
 Mesh / Malla
-~~~~~~~~~~~~
+------------
 
 .. mat:module:: ldem.mesh
 
@@ -35,8 +47,8 @@ Mesh / Malla
 .. mat:autofunction:: ldem.mesh.computeNodalMasses
 .. mat:autofunction:: ldem.mesh.computeBarGeometry
 
-Material / Material
-~~~~~~~~~~~~~~~~~~~
+Material
+--------
 
 .. mat:module:: ldem.material
 
@@ -46,7 +58,7 @@ Material / Material
 .. mat:autofunction:: ldem.material.bilinearLaw
 
 Scenarios / Escenarios de ensayo
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 .. mat:module:: ldem.scenarios
 
@@ -56,16 +68,22 @@ Scenarios / Escenarios de ensayo
 .. mat:autofunction:: ldem.scenarios.fromTestId
 
 Solver
-~~~~~~
+------
 
 .. mat:module:: ldem.solver
 
+.. mat:autofunction:: ldem.solver.simulate
+.. mat:autofunction:: ldem.solver.initialState
+.. mat:autofunction:: ldem.solver.computeBarForces
+.. mat:autofunction:: ldem.solver.integrateStep
+.. mat:autofunction:: ldem.solver.dampingCoefficient
+.. mat:autofunction:: ldem.solver.computeEnergies
 .. mat:autofunction:: ldem.solver.checkStability
 
-Legacy routines / Rutinas originales
-------------------------------------
+Post-processing / Postproceso
+-----------------------------
 
-The original routines live in ``legacy/`` as a frozen reference and are not
-part of the generated API. Their known problems are listed in
-``legacy/KNOWN_ISSUES.md`` / Las rutinas originales están en ``legacy/`` como
-referencia congelada y no forman parte de la API generada.
+.. mat:module:: ldem.post
+
+.. mat:autofunction:: ldem.post.plotEnergy
+.. mat:autofunction:: ldem.post.plotReaction

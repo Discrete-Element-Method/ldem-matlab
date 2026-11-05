@@ -280,6 +280,9 @@ end
     W(2,:) = W(3,:);
 end
 
+% FIX: ign012 is a nested function and was never called, so the equations of
+% motion were not integrated (see legacy/KNOWN_ISSUES.md, item 0).
+ign012;
 
 ini=1;
  end

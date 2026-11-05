@@ -2,17 +2,41 @@
 
 ## Docstring convention
 The API docs are generated from the comments of the `.m` files
-(`sphinxcontrib-matlabdomain`). The docstring must be the comment block
-placed **immediately after the `function` line** (before `global` blocks):
+(`sphinxcontrib-matlabdomain`). The docstring is the comment block placed
+**immediately after the `function` line** (no blank line in between):
 
 ```matlab
-function ini = CALOAD()
-% CALOAD  One-line summary (English).
-% Longer description of what the routine does.
-global ...
+function [barLength, barCentres] = computeBarGeometry(nodes, bars)
+%COMPUTEBARGEOMETRY  One-line summary.
+%
+%   [barLength, barCentres] = ldem.mesh.computeBarGeometry(nodes, bars)
+%   explains in a few lines what the function does.
+%
+%   Inputs:
+%     nodes  nNodes-by-3 coordinates [m].
+%     bars   nBars-by-2 node numbers.
+%
+%   Outputs:
+%     barLength   nBars-by-1 vector of lengths [m].
+%     barCentres  nBars-by-3 matrix of midpoints [m].
+%
+%   Example:
+%       [len, mid] = ldem.mesh.computeBarGeometry(nodes, bars);
+%
+%   Legacy: CALAUX.
+%
+%   See also ldem.mesh.buildBars.
 ```
 
-Comments in new code are written in English (the legacy code keeps its original Portuguese comments).
+Rules that keep the Sphinx build free of warnings:
+- Write each entry of *Inputs/Outputs* on **one line**; put longer
+  explanations in a paragraph after the list.
+- Leave a blank comment line before an indented block (list, example, table).
+
+Comments in new code are written in English (the legacy code keeps its original
+Portuguese comments). Names: `lowerCamelCase` for functions and variables,
+`UpperCamelCase` for classes. Validate inputs with an `arguments` block and throw
+errors with an identifier of the form `ldem:<area>:<problem>`.
 
 ## Workflow
 1. Branch from `dev`.

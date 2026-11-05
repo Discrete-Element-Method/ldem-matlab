@@ -46,11 +46,22 @@ classdef TestFixtures < matlab.unittest.TestCase
             testCase.verifyTrue(all(isfinite(s.U), 'all'));
         end
 
+        function fixturesIncludeTheTimeIntegration(testCase, caseName)
+            % The legacy driver once skipped the integration (nodes stayed
+            % at rest). Free nodes must have moved in every reference case.
+            fixture = load(fullfile(testCase.FixtureDir, caseName + ".mat"));
+            s = fixture.state;
+            speed = max(abs([s.VLX(:); s.VLY(:); s.VLZ(:)]));
+            testCase.verifyGreaterThan(speed, 0, ...
+                'Velocities are zero: the equations of motion were not integrated.');
+        end
+
         function damageCaseActuallyDamages(testCase)
             elastic = load(fullfile(testCase.FixtureDir, 'tension101_elastic.mat'));
             damaged = load(fullfile(testCase.FixtureDir, 'tension101_damage.mat'));
             testCase.verifyEqual(nnz(~elastic.state.DM), 0);
-            testCase.verifyGreaterThan(nnz(~damaged.state.DM), 0);
+            testCase.verifyGreaterThan(nnz(~damaged.state.DM), 0, 'No bar softened.');
+            testCase.verifyGreaterThan(nnz(~damaged.state.FS), 0, 'No bar broke.');
         end
     end
 

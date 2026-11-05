@@ -1,0 +1,91 @@
+function state = integrateStep(state, mesh, barProps, params)
+%INTEGRATESTEP  Advance the node positions one time step.
+%
+%   state = ldem.solver.integrateStep(state, mesh, barProps, params) solves
+%   the equation of motion of every free degree of freedom with the explicit
+%   central-difference scheme
+%
+%       m * (u_next - 2*u + u_prev)/dt^2 + c*m * (u_next - u_prev)/(2*dt) = F
+%
+%   where F is the bar force on the node, m its lumped mass and c the
+%   mass-proportional damping coefficient of the step, which gives
+%
+%       u_next = (dt^2/m * F + 2*u - (1 - c*dt/2)*u_prev) / (1 + c*dt/2)
+%
+%   Degrees of freedom fixed by the scenario keep their current value. After
+%   the update the velocity and acceleration are obtained with central
+%   differences, the energy dissipated by damping is accumulated and the two
+%   stored positions are shifted (current -> previous, next -> current).
+%
+%   The energy dissipated in the step has two parts: the mass-proportional
+%   damping of the nodes, c*(m/2)*v*(u_next - u_prev), and the viscous term
+%   of the constitutive law, E*CON*rate^2*dt*L for every bar (E is the
+%   compression stiffness for compressed bars and the tension stiffness
+%   otherwise).
+%
+%   Inputs:
+%     state     Solver state after ldem.solver.computeBarForces.
+%     mesh      Struct from ldem.mesh.buildMesh (mass, fixed, barLength).
+%     barProps  Struct from ldem.material.buildBarProperties.
+%     params    ldem.Parameters.
+%
+%   Output:
+%     state  Updated: displacement, previousDisplacement, velocity,
+%            acceleration and dampingEnergy.
+%
+%   Errors:
+%     ldem:solver:zeroMass  A node has zero mass.
+%
+%   Legacy: IGN012 (nested function ign012). The legacy acceleration in y
+%   used a wrong index (V(2,I) instead of V(2,:)); here it is computed like
+%   the other two components.
+%
+%   See also ldem.solver.computeBarForces, ldem.solver.dampingCoefficient.
+
+arguments
+    state (1,1) struct
+    mesh (1,1) struct
+    barProps (1,1) struct
+    params (1,1) ldem.Parameters
+end
+
+if any(mesh.mass == 0)
+    error('ldem:solver:zeroMass', 'Node %d has zero mass.', find(mesh.mass == 0, 1));
+end
+
+dt  = params.dt;
+ddt = 2.0 * dt;
+sdt = dt * dt;
+
+c = ldem.solver.dampingCoefficient(state.step, params);
+dampingPrevious = 1.0 - c * dt / 2.0;
+dampingNext     = 1.0 + c * dt / 2.0;
+
+u     = state.displacement;
+uPrev = state.previousDisplacement;
+timeFactor = sdt ./ mesh.mass;                 % nNodes-by-1, applies to x, y and z
+
+uNext = (timeFactor .* state.force + 2.0 .* u - dampingPrevious .* uPrev) ./ dampingNext;
+uNext(mesh.fixed) = u(mesh.fixed);
+
+velocity     = (uNext - uPrev) ./ ddt;
+acceleration = (uNext - u .* 2.0 + uPrev) ./ sdt;
+
+% Energy dissipated by mass-proportional damping (all nodes and directions).
+nodeDamping = (c .* (mesh.mass ./ 2.0)) .* velocity .* (uNext - uPrev);
+dissipated = sum(nodeDamping, 'all');
+
+% Energy dissipated by the viscous term of the constitutive law.
+isCompressed = state.strain < 0.0;
+stiffness = state.history.tensionStiffness;
+stiffness(isCompressed) = barProps.stiffness(isCompressed);
+barViscous = 2.0 * (stiffness .* params.constitutiveDamping .* state.strainRate .* ...
+    state.strainRate .* dt .* mesh.barLength ./ 2.0);
+dissipated = dissipated + sum(barViscous);
+
+state.dampingEnergy        = state.dampingEnergy + dissipated;
+state.previousDisplacement = u;
+state.displacement         = uNext;
+state.velocity             = velocity;
+state.acceleration         = acceleration;
+end

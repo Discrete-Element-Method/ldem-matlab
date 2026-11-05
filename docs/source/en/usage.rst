@@ -1,18 +1,102 @@
 Usage
 =====
 
+Run a simulation
+----------------
+
 .. code-block:: matlab
 
-   >> setup_path
-   >> main        % default simulation
+   >> setup_path                        % adds src/ to the MATLAB path
+   >> params = ldem.Parameters(testId=101, nModules=[6 3 3], totalTime=2e-4, ...
+          fractureEnergy=0.1, ...
+          output=struct('snapshotEvery', 250, 'controlNodesEvery', 10, ...
+                        'energyEvery', 10, 'trackedBarEvery', 0));
+   >> results = ldem.runSimulation(params, OutputFolder="output", ...
+          Formats=["mat" "ansys" "vtk"]);
+   >> ldem.post.plotEnergy(results);
 
-Input data files (``DATA0.DAT``, ``SIM01.DAT``) are read by ``read_dat0``.
-Results are written to ``LET.*`` and ``*.TXT`` files in the working
-directory.
+``ldem.Parameters`` checks every value when it is set and explains what is
+wrong (for example an unstable time step). The complete, ready-to-run version
+of this script is ``examples/tension_101/runTension.m``.
 
-Run the tests:
+To use an input file in the format of the original program:
+
+.. code-block:: matlab
+
+   >> params = ldem.Parameters.fromFile("DATA0.DAT");
+
+Tests available
+---------------
+
+``testId = 101``
+   Uniaxial load: the centre nodes of the last column of modules move along
+   :math:`x` with a prescribed velocity.
+``testId = 102``
+   Beam with two supports and a load point (needs a beam longer than about 70
+   modules). See ``examples/beam_102``.
+
+To add a new test, create a subclass of ``ldem.scenarios.Scenario``.
+
+What you get: the ``results`` struct
+------------------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - Field
+     - Content
+   * - ``info``
+     - ldem version, date, MATLAB release, run time [s].
+   * - ``params``
+     - The parameters used, as a plain struct (derived values included).
+   * - ``mesh``
+     - Initial node positions, supports (``fixed``), masses, bars, bar lengths.
+   * - ``barProps``
+     - Stiffness, critical strain and rupture strain of every bar.
+   * - ``controlNodes``
+     - Time and displacement, velocity and acceleration of the control nodes.
+   * - ``reactions``
+     - Time and reaction force of the test (beam test: vertical force).
+   * - ``energy``
+     - Time, kinetic, elastic, damage and damping energies [J], their sum
+       (``internal``) and the damage rate.
+   * - ``trackedBar``
+     - Strain, force and damage energy of one bar at every step (optional).
+   * - ``snapshots``
+     - Step, time, number of intact/damaged/broken bars, and compact copies of
+       the displacements and of the damage state at the snapshot steps.
+   * - ``final``
+     - Final displacement, velocity, force and damage state.
+
+``results.mat`` contains this struct and loads without the package:
+
+.. code-block:: matlab
+
+   >> data = load("output/results.mat");
+   >> results = data.results;
+
+Output files
+------------
+
+``results.mat``
+   The ``results`` struct (format v7.3, readable from Python with ``h5py``).
+``snapshot_0000.mac``, ``snapshot_0001.mac``, ...
+   ANSYS macro files with the deformed lattice. Bars are element types 1
+   (intact), 2 (damaged) and 5 (broken).
+``snapshot_0000.vtu``, ... and ``snapshots.pvd``
+   VTK files. Open ``snapshots.pvd`` in `ParaView <https://www.paraview.org>`_;
+   colour by ``damageState`` (cell data) to see the cracks and use the time
+   slider to follow them. Displacement and velocity are point data.
+
+ANSYS and VTK files are written at time zero and every
+``params.output.snapshotEvery`` steps.
+
+Run the tests
+-------------
 
 .. code-block:: matlab
 
    >> addpath tests
-   >> run_tests
+   >> run_tests                          % fast tests
+   >> run_tests(IncludeSlow=true)        % also re-runs the legacy simulations

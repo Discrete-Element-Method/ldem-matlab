@@ -20,6 +20,22 @@
   type, critical strain with optional random field (`ldem.io.readRandomField`),
   and the bilinear constitutive law as a pure function (`bilinearLaw`).
   `ldem.mesh.buildBars` now also returns the bar type and boundary faces.
+- Solver in `ldem.solver`: `simulate` (time loop), `computeBarForces`,
+  `integrateStep` (central differences with damping), `computeEnergies`,
+  `dampingCoefficient` and `initialState`. `Scenario` now also defines the
+  loading (`applyLoads`, with a configurable `loadingVelocity`) and the
+  reaction force (`reactions`).
+- `TestSolverAgainstLegacy`: the new solver reproduces the corrected legacy
+  simulation (displacements, velocities, damage, energies, reactions) in the
+  three reference cases; unit tests with analytical solutions (damped
+  oscillator, energy balance, Newton's third law).
+- `ldem.runSimulation`: complete simulation returning one `results` struct and
+  writing `results.mat`, ANSYS macro files (`ldem.io.exportAnsys`, equal to the
+  legacy files except for two intended fixes) and a VTK series for ParaView
+  (`ldem.io.exportVtk`, `ldem.io.writePvd`), driven by `ldem.io.SnapshotWriter`.
+- `ldem.post.plotEnergy` and `ldem.post.plotReaction`; `ldem.Parameters.toStruct`.
+- Runnable examples: `examples/tension_101/runTension.m` and
+  `examples/beam_102/runBeam.m`; user guides rewritten (EN/ES).
 - Unit tests (`tests/unit`) and a regression test that compares the new mesh
   with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
 
@@ -35,6 +51,9 @@
 - `legacy/main1.m`: removed scratch lines; fixed the end-of-run file closing
   (undefined `fid12/fid15/fid19/fid20`) and the ANSYS output call.
 - `legacy/BOUND.m`: `TEST 101` failed because `ini` was not assigned.
+- `legacy/IGN012.m`: the time integration was never executed (the nested function
+  `ign012` was not called), so free nodes never moved. Fixed; the golden-master
+  fixtures were regenerated and the damage case re-tuned (1000 steps, Gf = 0.1).
 
 ### Removed
 - Duplicate files (`* - Copia.m`, `Copy_of_*`), empty `initialization_DEM`, and
