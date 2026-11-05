@@ -90,6 +90,12 @@ BDZ=zeros(NNT,1);
 %       RETURN
 %       END
 %        
+% FIX: ini was only assigned inside "if TEST == 102", so TEST 101 failed with
+% "output argument ini not assigned". Assign it unconditionally.
+% NOTE (not changed, physics frozen): in TEST 101 mask2 uses (M1 - 0.51*LCO)
+% instead of (M1 - 0.51)*LCO, so it selects no nodes.
+ini = 1;
+
 if TEST == 101
     
     % Masks for the two conditions (operate on all elements at once)

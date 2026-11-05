@@ -1,9 +1,7 @@
-% boris
-a= 1
-b = 2
-c= 3
-
-
+% MAIN1  Legacy LDEM driver (frozen reference implementation).
+% Run from the folder that contains DATA0.DAT, LET.AN1 and the random
+% field file, with legacy/ on the MATLAB path. Do not modify the numerics:
+% the regression tests in tests/regression compare against this code.
 clear all
 clc
 global INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
@@ -465,10 +463,11 @@ for STEP = STEPP:NSTEP
     if PR3 == OU3
         I3 = I3 + 1;
         PR3 = 1;
-        fid11 = fopen(ARMANS(I3), 'w');
+        % FIX: ARMANS is a cell array (braces) and ANSYS returns only a
+        % status flag; the bar counters are reset inside ANSYS.
+        fid11 = fopen(ARMANS{I3}, 'w');
         fprintf(fid11, '!ARQUIVO NO TEMPO = %g\n', TIME);
-        [CONT1, CONT2, CONT3, CONT4, CONT5, CONT6] = ...
-         ini==ANSYS(fid11, CONT1, CONT2, CONT3, CONT4, CONT5, CONT6);
+        ini = ANSYS(fid11, cont1, cont2, cont3, cont4, cont5, cont6);
         'ini=ANSYS()'
         fclose(fid11);
     else
@@ -510,25 +509,19 @@ for STEP = STEPP:NSTEP
 end
 % -------------------------------------------------------------------------
 
-if RUN == NRUN
-    % GO TO 70
-else
-    if OU5 > 0 && fid15 >= 0, fclose(fid15); end
-    if OU6 > 0 && fid_DIS>= 0, fclose(fid_DIS); end
-    if OU7 > 0 && fid_POS >= 0, fclose(fid_POS); end
-    if OU8 > 0 && fid_ENE >= 0, fclose(fid_ENE); end
-end
-
 % 70 CONTINUE
 
 fprintf('\n');
 fprintf('  ****************** THE END *******************  \n');
 fprintf('\n');
 
-% Close remaining open files
-if fid19 >= 0, fclose(fid19); end
-if fid20 >= 0, fclose(fid20); end
-if fid12 >= 0, fclose(fid12); end
+% FIX: close every output file that was opened (the original code
+% referenced undefined identifiers fid12/fid15/fid19/fid20).
+for fidToClose = [fid_CON, fid_RES, fid_DIS, fid_POS, fid_ENE, fid_Lei, fid_EnB]
+    if fidToClose >= 3 && ~isempty(fopen(fidToClose))
+        fclose(fidToClose);
+    end
+end
 
 % End of program Console1
 

@@ -16,7 +16,7 @@ quasi-brittle materials (concrete, rocks).
 
 | Path | Content |
 |------|---------|
-| `src/ldem/` | LDEM source code (`.m`) |
+| `legacy/` | Original LDEM routines (frozen reference, being refactored into `src/+ldem`) |
 | `tests/` | `matlab.unittest` test suite |
 | `docs/` | Sphinx documentation (English and Spanish), API generated from the `.m` files |
 | `examples/` | How to run the example simulations |
@@ -24,7 +24,7 @@ quasi-brittle materials (concrete, rocks).
 ### Quick start
 
 ```matlab
->> setup_path          % adds src/ldem to the MATLAB path
+>> setup_path          % adds legacy/ to the MATLAB path
 >> main                % runs the default simulation
 ```
 
@@ -68,7 +68,7 @@ quase-frágeis (concreto, rochas).
 
 | Caminho | Conteúdo |
 |---------|----------|
-| `src/ldem/` | Código-fonte LDEM (`.m`) |
+| `legacy/` | Rotinas LDEM originais (referência congelada, em refatoração para `src/+ldem`) |
 | `tests/` | Suíte de testes com `matlab.unittest` |
 | `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
 | `examples/` | Como executar as simulações de exemplo |
@@ -76,7 +76,7 @@ quase-frágeis (concreto, rochas).
 ### Início rápido
 
 ```matlab
->> setup_path          % adiciona src/ldem ao path do MATLAB
+>> setup_path          % adiciona legacy/ ao path do MATLAB
 >> main                % executa a simulação padrão
 ```
 
@@ -118,7 +118,7 @@ cuasi-frágiles (hormigón, rocas).
 
 | Ruta | Contenido |
 |------|-----------|
-| `src/ldem/` | Código fuente LDEM (`.m`) |
+| `legacy/` | Rutinas LDEM originales (referencia congelada, en refactorización hacia `src/+ldem`) |
 | `tests/` | Suite de tests con `matlab.unittest` |
 | `docs/` | Documentación Sphinx (español e inglés), API generada desde los `.m` |
 | `examples/` | Cómo ejecutar las simulaciones de ejemplo |
@@ -126,7 +126,7 @@ cuasi-frágiles (hormigón, rocas).
 ### Inicio rápido
 
 ```matlab
->> setup_path          % agrega src/ldem al path de MATLAB
+>> setup_path          % agrega legacy/ al path de MATLAB
 >> main                % ejecuta la simulación por defecto
 ```
 

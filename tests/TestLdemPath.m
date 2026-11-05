@@ -1,5 +1,5 @@
 classdef TestLdemPath < matlab.unittest.TestCase
-    %TESTLDEMPATH  Verifica que as rotinas principais estão no path e documentadas.
+    %TESTLDEMPATH  Check that the main routines are on the path and documented.
     properties (TestParameter)
         routine = {'ini_DEM3','CALOAD','CALRES','BOUND','CONECTI', ...
                    'INTCO1','RMEC','ENERG2','read_dat0','prepvar'}
@@ -8,7 +8,7 @@ classdef TestLdemPath < matlab.unittest.TestCase
         function addSource(testCase)
             root = fileparts(fileparts(mfilename('fullpath')));
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture( ...
-                fullfile(root, 'src', 'ldem')));
+                fullfile(root, 'legacy')));
         end
     end
     methods (Test)
