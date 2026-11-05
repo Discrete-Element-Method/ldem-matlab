@@ -22,6 +22,7 @@ arguments
 end
 
 testsFolder = fileparts(mfilename('fullpath'));
+addpath(testsFolder);
 addpath(fullfile(fileparts(testsFolder), 'legacy'));
 
 suite = matlab.unittest.TestSuite.fromFolder(testsFolder, ...

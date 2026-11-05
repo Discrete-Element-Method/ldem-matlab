@@ -12,11 +12,20 @@
 - `legacy/KNOWN_ISSUES.md`: bugs found in the original code and how the
   refactored code will resolve each one.
 
+- New package `src/+ldem` (refactoring in progress), validated against the
+  legacy fixtures: `ldem.Parameters` (validated input), `ldem.io.readInputFile`,
+  `ldem.mesh.*` (nodes, bars, masses, geometry, optional perturbation),
+  `ldem.scenarios.*` (test cases 101 and 102) and `ldem.solver.checkStability`.
+- Unit tests (`tests/unit`) and a regression test that compares the new mesh
+  with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
+
 ### Changed
 - Original routines moved from `src/ldem` to `legacy/` (frozen reference).
 - Experimental scripts moved to `sandbox/`; example inputs to `examples/beam_102/`.
 - `.gitignore` now targets MATLAB and LDEM output files.
 - `run_tests` searches subfolders and skips tests tagged `Slow` by default.
+- `setup_path` adds both `src/` and `legacy/`; the generated API documentation
+  now covers the `ldem` package only.
 
 ### Fixed
 - `legacy/main1.m`: removed scratch lines; fixed the end-of-run file closing

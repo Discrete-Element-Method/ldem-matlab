@@ -1,41 +1,60 @@
 API reference / Referencia de la API
 ====================================
 
-Generated automatically from the comments of the ``.m`` files in
-``legacy/`` (comments are written in Portuguese) /
+Generated automatically from the comments of the ``.m`` files /
 Generada automáticamente desde los comentarios de los ``.m``.
 
-.. note::
+Refactored package ``ldem`` / Paquete refactorizado ``ldem``
+------------------------------------------------------------
 
-   Only routines that already have a docstring (comment block right below
-   the ``function`` line) are listed. To add another routine, document it
-   and append it to this list / Para añadir otra rutina, documentarla y
-   agregarla a esta lista.
+New code in ``src/+ldem`` (English comments). It replaces the routines of
+``legacy/`` step by step; see ``legacy/KNOWN_ISSUES.md``.
 
-.. mat:module:: legacy
+.. mat:module:: ldem
 
-Initialisation / Inicialización
--------------------------------
+Parameters / Parámetros
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. mat:autofunction:: legacy.ini_DEM3
-.. mat:autofunction:: legacy.read_dat0
-.. mat:autofunction:: legacy.prepvar
+.. mat:autoclass:: ldem.Parameters
+   :members:
 
-Geometry and connectivity / Geometría y conectividad
-----------------------------------------------------
+.. mat:module:: ldem.io
 
-.. mat:autofunction:: legacy.CONECTI
-.. mat:autofunction:: legacy.INTCO1
+.. mat:autofunction:: ldem.io.readInputFile
 
-Mechanics, loads and boundary conditions / Mecánica, cargas y contorno
-----------------------------------------------------------------------
+Mesh / Malla
+~~~~~~~~~~~~
 
-.. mat:autofunction:: legacy.RMEC
-.. mat:autofunction:: legacy.BOUND
-.. mat:autofunction:: legacy.CALOAD
+.. mat:module:: ldem.mesh
 
-Results and energy / Resultados y energía
------------------------------------------
+.. mat:autofunction:: ldem.mesh.buildMesh
+.. mat:autofunction:: ldem.mesh.buildNodes
+.. mat:autofunction:: ldem.mesh.perturbNodes
+.. mat:autofunction:: ldem.mesh.buildBars
+.. mat:autofunction:: ldem.mesh.computeNodalMasses
+.. mat:autofunction:: ldem.mesh.computeBarGeometry
 
-.. mat:autofunction:: legacy.CALRES
-.. mat:autofunction:: legacy.ENERG2
+Scenarios / Escenarios de ensayo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. mat:module:: ldem.scenarios
+
+.. mat:autoclass:: ldem.scenarios.Scenario
+.. mat:autoclass:: ldem.scenarios.UniaxialTension
+.. mat:autoclass:: ldem.scenarios.FourPointBending
+.. mat:autofunction:: ldem.scenarios.fromTestId
+
+Solver
+~~~~~~
+
+.. mat:module:: ldem.solver
+
+.. mat:autofunction:: ldem.solver.checkStability
+
+Legacy routines / Rutinas originales
+------------------------------------
+
+The original routines live in ``legacy/`` as a frozen reference and are not
+part of the generated API. Their known problems are listed in
+``legacy/KNOWN_ISSUES.md`` / Las rutinas originales están en ``legacy/`` como
+referencia congelada y no forman parte de la API generada.

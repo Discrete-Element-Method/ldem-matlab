@@ -39,7 +39,7 @@ for k = 1:numel(cases)
     mkdir(workDir);
     cleaner = onCleanup(@() rmdir(workDir, 's'));
     timer = tic;
-    [state, files] = runLegacyCase(caseDef, workDir); %#ok<ASGLU>
+    [state, files] = runLegacyCase(caseDef, workDir);
     save(fullfile(fixtureDir, caseDef.name + ".mat"), 'caseDef', 'state', 'files');
     fprintf('done in %.1f s (%d nodes, %d bars, %d damaged bars).\n', ...
         toc(timer), state.NNT, state.NBT, nnz(~state.DM));

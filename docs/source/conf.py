@@ -13,7 +13,7 @@ extensions = [
 ]
 
 # --- MATLAB API (generated from the .m comments) ---------------------------
-matlab_src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+matlab_src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 matlab_short_links = True
 matlab_auto_link = "basic"
 primary_domain = "mat"
