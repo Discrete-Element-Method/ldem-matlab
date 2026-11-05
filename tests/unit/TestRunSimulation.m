@@ -146,6 +146,20 @@ classdef TestRunSimulation < LdemTestCase
             testCase.verifyEqual(ax.XLabel.String, 'Time [s]');
         end
 
+        function plotsUseTheCurrentAxesByDefault(testCase)
+            results = ldem.runSimulation(testCase.quickParams());
+            fig = figure('Visible', 'off');
+            testCase.addTeardown(@close, fig);
+            ax = ldem.post.plotEnergy(results);
+            testCase.verifyEqual(ax, fig.CurrentAxes);
+
+            bending = ldem.runSimulation(ldem.Parameters(testId=102, nModules=[70 4 3], ...
+                totalTime=2e-6, output=struct('snapshotEvery', 0, 'controlNodesEvery', 2, ...
+                'energyEvery', 0, 'trackedBarEvery', 0)));
+            ax = ldem.post.plotReaction(bending);
+            testCase.verifyEqual(ax, fig.CurrentAxes);
+        end
+
         function plotEnergyNeedsAnEnergyHistory(testCase)
             params = testCase.quickParams(struct('snapshotEvery', 0, ...
                 'controlNodesEvery', 0, 'energyEvery', 0, 'trackedBarEvery', 0));

@@ -32,8 +32,8 @@ quasi-brittle materials (concrete, rocks).
 Run the tests:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % static analysis + fast tests (needs R2022b or newer)
+>> buildtool testAll  % also the slow tests
 ```
 
 ### Documentation
@@ -47,8 +47,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Source-code comments are written in Portuguese; the guides are available in
-English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
+Comments of the new code are written in English (the original code in `legacy/`
+keeps its Portuguese comments); the guides are available in English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
 convention.
 
 ### Citation
@@ -85,8 +85,8 @@ quase-frágeis (concreto, rochas).
 Executar os testes:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % static analysis + fast tests (needs R2022b or newer)
+>> buildtool testAll  % also the slow tests
 ```
 
 ### Documentação
@@ -99,8 +99,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Os comentários do código estão em português; os guias estão em espanhol e
-inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
+Os comentários do código novo estão em inglês (o código original em `legacy/`
+mantém os comentários em português); os guias estão em espanhol e inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
 
 ### Citação
 
@@ -136,8 +136,8 @@ cuasi-frágiles (hormigón, rocas).
 Ejecutar los tests:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % static analysis + fast tests (needs R2022b or newer)
+>> buildtool testAll  % also the slow tests
 ```
 
 ### Documentación
@@ -150,8 +150,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Los comentarios del código están en portugués; las guías están en español e
-inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
+Los comentarios del código nuevo están en inglés (el código original de `legacy/`
+mantiene sus comentarios en portugués); las guías están en español e inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
 
 ### Cita
 

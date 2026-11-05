@@ -157,6 +157,42 @@ classdef TestSimulate < LdemTestCase
                 'ldem:params:unstableTimeStep');
         end
 
+        function aDamagedTrackedBarReportsItsDissipatedEnergy(testCase)
+            output = struct('snapshotEvery', 0, 'controlNodesEvery', 0, ...
+                'energyEvery', 0, 'trackedBarEvery', 0);
+            base = {'nModules', [6 3 3], 'totalTime', 2e-4, 'fractureEnergy', 0.1};
+
+            % First find a bar that softens in this simulation.
+            probe = ldem.runSimulation(ldem.Parameters(base{:}, 'output', output));
+            bar = find(~probe.final.damage.isUndamaged, 1);
+            testCase.assumeNotEmpty(bar, 'The probe run must damage at least one bar.');
+
+            output.trackedBarEvery = 1;
+            results = ldem.runSimulation(ldem.Parameters(base{:}, 'trackedBar', bar, 'output', output));
+            tracked = results.trackedBar;
+
+            testCase.verifyEqual(tracked.damageEnergy(1), 0, 'A bar starts undamaged.');
+            testCase.verifyGreaterThan(tracked.damageEnergy(end), 0);
+            testCase.verifyTrue(all(diff(tracked.damageEnergy) >= -1e-18), ...
+                'Dissipated energy cannot decrease.');
+
+            % Same formula as ldem.solver.computeEnergies, for this bar only.
+            h = results.final.damage;
+            E1 = results.barProps.stiffness(bar);
+            E2 = h.tensionStiffness(bar);
+            EP = results.barProps.criticalStrain(bar);
+            EM = h.maxStrain(bar);
+            expected = results.mesh.barLength(bar) / 2 * ...
+                (E1*EP^2 - E2*EM^2 + (E1*EP + E2*EM) * (EM - EP));
+            testCase.verifyEqual(tracked.damageEnergy(end), expected, 'RelTol', 1e-12);
+        end
+
+        function bendingScenarioAcceptsALoadingVelocity(testCase)
+            scenario = ldem.scenarios.FourPointBending(loadingVelocity=1e-3);
+            testCase.verifyEqual(scenario.loadingVelocity, 1e-3);
+            testCase.verifyEqual(ldem.scenarios.FourPointBending().loadingVelocity, 400e-5);
+        end
+
         function verboseModePrintsProgress(testCase)
             [params, mesh, barProps, history, scenario] = testCase.smallModel(nModules=[3 3 3], totalTime=2e-6); %#ok<ASGLU>
             text = evalc('ldem.solver.simulate(params, mesh, barProps, history, scenario, Verbose=true);');

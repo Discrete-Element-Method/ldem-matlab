@@ -32,3 +32,5 @@ docs/build/
 docs/_build/
 BARR_ROMP.dat
 SIM01.DAT
+code-issues/
+.buildtool/

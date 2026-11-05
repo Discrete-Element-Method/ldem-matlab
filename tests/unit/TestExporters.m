@@ -82,6 +82,18 @@ classdef TestExporters < LdemTestCase
                     testCase.Mesh, testCase.State), 'ldem:io:cannotOpenFile');
         end
 
+        function vtkCannotWriteToAnInvalidPath(testCase)
+            testCase.verifyError( ...
+                @() ldem.io.exportVtk(fullfile(testCase.tempFolder(), "missing", "x.vtu"), ...
+                    testCase.Mesh, testCase.State), 'ldem:io:cannotOpenFile');
+        end
+
+        function pvdCannotWriteToAnInvalidPath(testCase)
+            testCase.verifyError( ...
+                @() ldem.io.writePvd(fullfile(testCase.tempFolder(), "missing", "x.pvd"), 0, "a.vtu"), ...
+                'ldem:io:cannotOpenFile');
+        end
+
         function vtkFileIsValidXml(testCase)
             path = fullfile(testCase.tempFolder(), "state.vtu");
             ldem.io.exportVtk(path, testCase.Mesh, testCase.State);

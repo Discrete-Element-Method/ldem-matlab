@@ -36,6 +36,11 @@
 - `ldem.post.plotEnergy` and `ldem.post.plotReaction`; `ldem.Parameters.toStruct`.
 - Runnable examples: `examples/tension_101/runTension.m` and
   `examples/beam_102/runBeam.m`; user guides rewritten (EN/ES).
+- `buildfile.m` (`buildtool`): `check` (Code Analyzer, any warning fails), `test`
+  (fast tests, JUnit report, Cobertura coverage), `testAll`, `docs` and `clean`.
+  Coverage of the `ldem` package is 99.9 %.
+- CI: `tests` runs `check` and `test` on R2023b and keeps the reports; `tests-all`
+  (manual) also runs the slow tests; `docs` builds Sphinx with warnings as errors.
 - Unit tests (`tests/unit`) and a regression test that compares the new mesh
   with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
 
