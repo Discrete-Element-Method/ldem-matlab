@@ -125,22 +125,20 @@ end
 if TEST == 102
     VF2 = 400.0e-5;   % m/s
 
-    for I = 1:NNT
-        LOGIC1 = (U0(I) < (M1 - 33.49) * LCO) && ...
-                 (U0(I) > (M1 - 33.51) * LCO);
-        LOGIC3 = (V0(I) < (N1 - 0.49)  * LCO) && ...
-                 (V0(I) > (N1 - 0.51)  * LCO);
-        LOGIC2 = (U0(I) <  33.51 * LCO)       && ...
-                 (U0(I) >  33.49 * LCO);
+    mask_z = (W0 < ( ((L1/2)-0.49)*LCO) ) & (W0 > ( ((L1/2)-0.51)*LCO) );
+    mask_y = (V0 > (0.49 * LCO)) & (V0 < (0.51 * LCO));
+   
+    
+    mascara_total = mask_z & mask_y;
+    
+    tempo_limite = 0.00035;
 
-        if LOGIC1 && LOGIC3
-            V(2,I) = V0(I) - VF2 * TIME;
-        end
-        if LOGIC1 && LOGIC2
-            V(2,I) = V0(I) - VF2 * TIME;
-        end
+    if TIME < tempo_limite
+        FRY(mascara_total) = 1000 * TIME;
+    else
+      
+        FRY(mascara_total) = 1000 * tempo_limite;
     end
-end
 
 ini=1;
- end
+end
