@@ -327,16 +327,14 @@ fprintf(IFILE, '!CONDIÇÕES DE CONTORNO\n');
 
 if TEST == 102
     for I = 1:NNT
-        if BDX(I) == 1
-            fprintf(IFILE, 'D,%d,UX\n', I);
+        
+        LOGIC1 = (W0(I) < (((L1/2)-0.49)*LCO)) && (W0(I) > (((L1/2)-0.51)*LCO));
+        LOGIC2 = (V0(I) > (0.49 * LCO)) && (V0(I) < (0.51 * LCO));
+        
+        if LOGIC1 && LOGIC2 
+            fprintf(IFILE, 'F,%d,FY,%d\n', I, -100);
         end
-        if BDY(I) == 1
-            fprintf(IFILE, 'D,%d,UY\n', I);
-        end
-        if BDZ(I) == 1
-            fprintf(IFILE, 'D,%d,UZ\n', I);
-        end
-    end
+    end 
 end
 
 fprintf(IFILE, '\n');
