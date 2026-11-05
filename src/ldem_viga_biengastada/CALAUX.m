@@ -1,0 +1,32 @@
+
+function ini=CALAUX()
+global  INT INB U V W U0 V0 W0 BDX BDY BDZ VLX VLY VLZ 
+global ACX ACY ACZ FRX FRY FRZ FX FY FZ MAS MSS CN ENR
+global EDG E1 E2 LI DEQB F YNGB GFRB LCRB EPRB EP SS EM
+global EN KR KR1 DSS DM FS CAF DT GFR DEQ LCR TEST EST 
+global DF DF1 DF2 DMP1 DMP2 TDAF CON M N L M1 N1 L1 MNL
+global NNO NNS NNT NBA NBS NBT INCO NCON STEP NSTEP NDAMF
+global RUN NRUN LCO TIME TTOT PSN ROH YNG EPR EPMAX EPMIN 
+global MEAN  COEV ENEX ENCN ENEL ENGD ENDP ENIN DEN DERIV 
+global XB YB ZB UBAR VBAR WBAR REACAOX REACAOY REACAOZ 
+global STRAIN STRESS SEED 
+  DM = true(NBT, 1);
+  FS = true(NBT, 1);
+    for B = 1:NBT
+  
+    NOI = CN(2*B - 1);
+    NOF = CN(2*B);
+
+    DU = U(1,NOF) - U(1,NOI);
+    DV = V(1,NOF) - V(1,NOI);
+    DW = W(1,NOF) - W(1,NOI);
+
+    LI(B) = sqrt(DU*DU + DV*DV + DW*DW);
+    EM(B) = 0.0;
+
+    XB(B) = (U(1,NOF) + U(1,NOI)) / 2.0;
+    YB(B) = (V(1,NOF) + V(1,NOI)) / 2.0;
+    ZB(B) = (W(1,NOF) + W(1,NOI)) / 2.0;
+   end
+   ini=1;
+   end
