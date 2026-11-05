@@ -21,6 +21,7 @@ Parameters / Parámetros
 .. mat:module:: ldem.io
 
 .. mat:autofunction:: ldem.io.readInputFile
+.. mat:autofunction:: ldem.io.readRandomField
 
 Mesh / Malla
 ~~~~~~~~~~~~
@@ -33,6 +34,16 @@ Mesh / Malla
 .. mat:autofunction:: ldem.mesh.buildBars
 .. mat:autofunction:: ldem.mesh.computeNodalMasses
 .. mat:autofunction:: ldem.mesh.computeBarGeometry
+
+Material / Material
+~~~~~~~~~~~~~~~~~~~
+
+.. mat:module:: ldem.material
+
+.. mat:autofunction:: ldem.material.latticeCoefficients
+.. mat:autofunction:: ldem.material.computeBarStiffness
+.. mat:autofunction:: ldem.material.buildBarProperties
+.. mat:autofunction:: ldem.material.bilinearLaw
 
 Scenarios / Escenarios de ensayo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

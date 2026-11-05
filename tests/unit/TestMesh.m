@@ -36,6 +36,21 @@ classdef TestMesh < LdemTestCase
             testCase.verifySize(bars, [gridEdges + centreBars + diagonals, 2]);
         end
 
+        function barClassification(testCase)
+            % In a 4x4x4 prism: 144 grid edges (36 inside, 72 on faces, 36 on
+            % prism edges), 3*2*3*3 = 54 centre bars and 8*27 = 216 diagonals.
+            [bars, type, faces] = ldem.mesh.buildBars([4 4 4]);
+            testCase.verifySize(type, [size(bars, 1) 1]);
+            testCase.verifySize(faces, [size(bars, 1) 1]);
+            testCase.verifyEqual(nnz(type == 1), 144);
+            testCase.verifyEqual(nnz(type == 2), 54);
+            testCase.verifyEqual(nnz(type == 3), 216);
+            testCase.verifyEqual(nnz(type == 1 & faces == 0), 36);
+            testCase.verifyEqual(nnz(type == 1 & faces == 1), 72);
+            testCase.verifyEqual(nnz(type == 1 & faces == 2), 36);
+            testCase.verifyTrue(all(faces(type ~= 1) == 0));
+        end
+
         function singleModuleHasTwentyBars(testCase)
             bars = ldem.mesh.buildBars([2 2 2]);
             testCase.verifySize(bars, [20 2]);

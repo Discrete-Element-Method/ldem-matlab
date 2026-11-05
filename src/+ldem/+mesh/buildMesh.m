@@ -18,6 +18,8 @@ function mesh = buildMesh(params, scenario)
 %       fixed         nNodes-by-3 logical, true where the motion is fixed
 %       mass          nNodes-by-1 lumped masses [kg]
 %       bars          nBars-by-2 end-node numbers
+%       barType       nBars-by-1 codes: 1 grid edge, 2 centre-to-centre, 3 diagonal
+%       barBoundaryFaces  nBars-by-1 prism faces a grid edge lies on (0, 1 or 2)
 %       barLength     nBars-by-1 initial lengths [m]
 %       barCentres    nBars-by-3 midpoints [m]
 %
@@ -48,6 +50,6 @@ mesh.nGridNodes = prod(params.nModules);
 mesh.fixed      = scenario.fixedDofs(nodes, params);
 mesh.mass       = ldem.mesh.computeNodalMasses(params.nModules, ...
                       params.moduleLength, params.density);
-mesh.bars       = ldem.mesh.buildBars(params.nModules);
+[mesh.bars, mesh.barType, mesh.barBoundaryFaces] = ldem.mesh.buildBars(params.nModules);
 [mesh.barLength, mesh.barCentres] = ldem.mesh.computeBarGeometry(nodes, mesh.bars);
 end

@@ -39,4 +39,16 @@ code** (each one has a test that documents the decision).
    *New code:* scenario parameters.
 6. **`IMPERF.m`: `LABELN` is set to 1 and then immediately to 0,** so the mesh
    perturbation is never applied (the random generator seed has no effect).
-7. **Preallocation `INT = 168000`, `INB = 2300000`** limits the mesh size.
+7. **`CALCOEV.m`: the coefficient of variation is never stored.**
+   It computes `COEF = std(EP)/MEAN` but the global variable is `COEV`, which
+   therefore stays 0 (and is printed as 0 in the input echo).
+   *New code:* `barProps.criticalStrainCv` holds the real value.
+8. **`DEFEP.m`: unused safety check.** `DEFEP` stops when `KR < 1.01`, but
+   `RMEC` no longer calls it (the formulas are inlined), so the check never
+   runs and the softening branch could divide by `KR - 1 ~ 0`.
+   *New code:* `buildBarProperties` raises `ldem:material:criticalLengthTooShort`.
+9. **Random field is mandatory.** The main program fails if the file
+   `arquivo_3lc_rnao_cv05` is missing, with no way to run a homogeneous
+   material. *New code:* `params.randomFieldFile` is optional (empty = all
+   multipliers equal to 1).
+10. **Preallocation `INT = 168000`, `INB = 2300000`** limits the mesh size.

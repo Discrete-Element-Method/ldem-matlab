@@ -16,6 +16,10 @@
   legacy fixtures: `ldem.Parameters` (validated input), `ldem.io.readInputFile`,
   `ldem.mesh.*` (nodes, bars, masses, geometry, optional perturbation),
   `ldem.scenarios.*` (test cases 101 and 102) and `ldem.solver.checkStability`.
+- Material model in `ldem.material`: lattice coefficients, bar stiffness by bar
+  type, critical strain with optional random field (`ldem.io.readRandomField`),
+  and the bilinear constitutive law as a pure function (`bilinearLaw`).
+  `ldem.mesh.buildBars` now also returns the bar type and boundary faces.
 - Unit tests (`tests/unit`) and a regression test that compares the new mesh
   with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
 
