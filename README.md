@@ -26,6 +26,7 @@ quasi-brittle materials (concrete, rocks).
 ```matlab
 >> setup_path          % adds src/ to the MATLAB path
 >> run('examples/tension_101/runTension.m')   % small example, output in examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % beam clamped at both ends
 ```
 
 Run the tests:
@@ -78,6 +79,7 @@ quase-frágeis (concreto, rochas).
 ```matlab
 >> setup_path          % adiciona src/ ao path do MATLAB
 >> run('examples/tension_101/runTension.m')   % exemplo pequeno, saída em examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga biengastada
 ```
 
 Executar os testes:
@@ -128,6 +130,7 @@ cuasi-frágiles (hormigón, rocas).
 ```matlab
 >> setup_path          % agrega src/ al path de MATLAB
 >> run('examples/tension_101/runTension.m')   % ejemplo pequeño, salida en examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga empotrada en ambos extremos
 ```
 
 Ejecutar los tests:

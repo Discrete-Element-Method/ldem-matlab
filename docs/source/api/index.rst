@@ -67,6 +67,7 @@ Scenarios / Escenarios de ensayo
 .. mat:autoclass:: ldem.scenarios.Scenario
 .. mat:autoclass:: ldem.scenarios.UniaxialTension
 .. mat:autoclass:: ldem.scenarios.FourPointBending
+.. mat:autoclass:: ldem.scenarios.ClampedBeam
 .. mat:autofunction:: ldem.scenarios.fromTestId
 
 Solver

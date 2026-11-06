@@ -6,6 +6,7 @@ function scenario = fromTestId(testId)
 %
 %       101  ldem.scenarios.UniaxialTension
 %       102  ldem.scenarios.FourPointBending
+%       103  ldem.scenarios.ClampedBeam
 %
 %   To register a new scenario, add a line to the list inside this file.
 %
@@ -24,7 +25,8 @@ arguments
     testId (1,1) double
 end
 
-registered = {ldem.scenarios.UniaxialTension(), ldem.scenarios.FourPointBending()};
+registered = {ldem.scenarios.UniaxialTension(), ldem.scenarios.FourPointBending(), ...
+              ldem.scenarios.ClampedBeam()};
 
 for k = 1:numel(registered)
     if registered{k}.testId == testId

@@ -29,8 +29,10 @@ function state = initialState(mesh, history)
 %     axialForce            nBars-by-1 axial force [N], tension positive (legacy F).
 %     history               Damage state of the bars.
 %     dampingEnergy         Energy dissipated by damping so far [J].
-%     externalEnergy        Work done by the supports and the prescribed motion so far [J].
+%     externalEnergy        Work of the supports, the prescribed motion and the applied forces so far [J].
 %     previousForce         nNodes-by-3 nodal force of the previous step [N].
+%     appliedForce          nNodes-by-3 external force set by the scenario in applyLoads [N].
+%     previousAppliedForce  nNodes-by-3 applied force of the previous step [N].
 %     previousDamageEnergy  Energy dissipated by damage at the previous step [J].
 %
 %   Example:
@@ -63,5 +65,7 @@ state.history              = history;
 state.dampingEnergy        = 0.0;
 state.externalEnergy       = 0.0;
 state.previousForce        = zeros(nNodes, 3);
+state.appliedForce         = zeros(nNodes, 3);
+state.previousAppliedForce = zeros(nNodes, 3);
 state.previousDamageEnergy = 0.0;
 end

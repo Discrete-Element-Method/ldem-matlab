@@ -52,6 +52,13 @@
   test are parameters (the legacy values are the defaults); an error is raised when
   a position matches no node.
 - Spanish translation of the known issues: `docs/known-issues/KNOWN_ISSUES.es.md`.
+- Example 1, `examples/example1_clamped_beam`: the beam clamped at both ends and
+  loaded with a force at mid-span, by Rodrigo (branch `dev_rodrigo`). It adds
+  `ldem.scenarios.ClampedBeam` (test 103), the first scenario loaded with a force:
+  a scenario can now set `state.appliedForce`, which the solver adds to the bar
+  forces and whose work is counted in the external energy. The new code
+  reproduces the original routines of the branch with no difference
+  (`tests/regression/TestClampedBeamAgainstLegacy`).
 - ANSYS files list the displacement imposed on the loaded nodes
   (`D,node,direction,value`) in the applied-loads section.
 - `Parameters.meshPerturbation`: one number that switches the mesh perturbation

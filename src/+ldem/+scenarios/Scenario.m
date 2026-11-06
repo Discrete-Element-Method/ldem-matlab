@@ -39,6 +39,11 @@ classdef (Abstract) Scenario
         %   for the time state.time. It is called once per step, before the
         %   bar forces are computed.
         %
+        %   A scenario that loads with forces instead of displacements sets
+        %   state.appliedForce (nNodes-by-3, in N) here; the solver adds it
+        %   to the bar forces and counts its work in the external energy.
+        %   Displacement-controlled scenarios leave it untouched (zeros).
+        %
         %   Inputs:
         %     state   Solver state, see ldem.solver.initialState.
         %     mesh    Struct from ldem.mesh.buildMesh.

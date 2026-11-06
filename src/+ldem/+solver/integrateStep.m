@@ -12,6 +12,8 @@ function state = integrateStep(state, mesh, barProps, params)
 %
 %       u_next = (dt^2/m * F + 2*u - (1 - c*dt/2)*u_prev) / (1 + c*dt/2)
 %
+%   F is the sum of the bar force (state.force) and of the force applied by the
+%   scenario (state.appliedForce, zero when the scenario imposes displacements).
 %   Degrees of freedom fixed by the scenario keep their current value. After
 %   the update the velocity and acceleration are obtained with central
 %   differences, the energy dissipated by damping is accumulated and the two
@@ -29,6 +31,11 @@ function state = integrateStep(state, mesh, barProps, params)
 %   the steps gives the external work, which balances the kinetic, elastic,
 %   damage and damping energies (see ldem.solver.computeEnergies).
 %
+%   A force applied to a free degree of freedom does work on the structure as
+%   the node moves: the average of the applied force of this step and of the
+%   previous one times the displacement of the step, summed over the free
+%   degrees of freedom and added to the same external work.
+%
 %   The energy dissipated in the step has two parts: the mass-proportional
 %   damping of the nodes, c*(m/2)*v*(u_next - u_prev), and the viscous term
 %   of the constitutive law, E*CON*rate^2*dt*L for every bar (E is the
@@ -43,7 +50,8 @@ function state = integrateStep(state, mesh, barProps, params)
 %
 %   Output:
 %     state  Updated: displacement, previousDisplacement, velocity,
-%            acceleration, dampingEnergy, externalEnergy and previousForce.
+%            acceleration, dampingEnergy, externalEnergy, previousForce and
+%            previousAppliedForce.
 %
 %   Errors:
 %     ldem:solver:zeroMass  A node has zero mass.
@@ -77,7 +85,8 @@ u     = state.displacement;
 uPrev = state.previousDisplacement;
 timeFactor = sdt ./ mesh.mass;                 % nNodes-by-1, applies to x, y and z
 
-uNext = (timeFactor .* state.force + 2.0 .* u - dampingPrevious .* uPrev) ./ dampingNext;
+totalForce = state.force + state.appliedForce;
+uNext = (timeFactor .* totalForce + 2.0 .* u - dampingPrevious .* uPrev) ./ dampingNext;
 uNext(mesh.fixed) = u(mesh.fixed);
 
 velocity     = (uNext - uPrev) ./ ddt;
@@ -99,8 +108,14 @@ dissipated = dissipated + sum(barViscous);
 averageForce = (state.force(mesh.fixed) + state.previousForce(mesh.fixed)) / 2.0;
 externalWork = -sum(averageForce .* (u(mesh.fixed) - uPrev(mesh.fixed)));
 
+% Work of the applied forces on the free degrees of freedom.
+averageApplied = (state.appliedForce + state.previousAppliedForce) / 2.0;
+free = ~mesh.fixed;
+externalWork = externalWork + sum(averageApplied(free) .* (u(free) - uPrev(free)));
+
 state.externalEnergy       = state.externalEnergy + externalWork;
 state.previousForce        = state.force;
+state.previousAppliedForce = state.appliedForce;
 state.dampingEnergy        = state.dampingEnergy + dissipated;
 state.previousDisplacement = u;
 state.displacement         = uNext;

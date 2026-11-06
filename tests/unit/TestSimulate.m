@@ -206,6 +206,27 @@ classdef TestSimulate < LdemTestCase
             testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
         end
 
+        function clampedBeamCarriesTheAppliedForceAtRest(testCase)
+            % Heavy damping brings the beam to rest, where the clamped ends
+            % carry exactly the force applied at mid-span, and the work of the
+            % applied force equals the stored plus dissipated energy.
+            params = ldem.Parameters(testId=103, nModules=[4 4 11], moduleLength=1e-3, ...
+                dt=3.5e-7, totalTime=1e-3, youngModulus=3.87e9, density=1500, ...
+                criticalDistance=4.5e-3, dampingInitial=20000, dampingFinal=20000, ...
+                dampingSwitchTime=1, controlNodes=1, ...
+                output=struct('snapshotEvery', 0, 'controlNodesEvery', 10, ...
+                    'energyEvery', 10, 'trackedBarEvery', 0));
+            results = ldem.runSimulation(params);
+            e = results.energy;
+
+            nLoaded = params.nModules(1) - 1;
+            totalForce = nLoaded * 1000 * 0.00035;
+            testCase.verifyEqual(results.reactions.force(end, 2), totalForce, 'RelTol', 1e-2);
+            testCase.verifyEqual(results.reactions.force(end, [1 3]), [0 0], 'AbsTol', 1e-3 * totalForce);
+            testCase.verifyGreaterThan(e.external(end), 0);
+            testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
+        end
+
         function energyBalanceClosesInTensionWithSofteningAndRupture(testCase)
             % With softening and rupture: the dissipated energy is accounted too.
             params = ldem.Parameters(nModules=[6 3 3], totalTime=2e-4, fractureEnergy=0.1, ...

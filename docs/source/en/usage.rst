@@ -36,6 +36,11 @@ Tests available
    ``ldem.scenarios.FourPointBending`` (``supportPosition``, ``loadPosition``,
    in modules from each end); the defaults need a beam longer than about 70
    modules. See ``examples/beam_102``.
+``testId = 103``
+   Beam clamped at both ends, loaded at mid-span with a force that grows
+   linearly and then stays constant (``ldem.scenarios.ClampedBeam``). It is the
+   only test loaded with a force instead of a displacement. See
+   ``examples/example1_clamped_beam``.
 
 To add a new test, create a subclass of ``ldem.scenarios.Scenario``.
 

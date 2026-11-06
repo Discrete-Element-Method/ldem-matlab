@@ -7,6 +7,8 @@ classdef TestScenarios < LdemTestCase
                 'ldem.scenarios.UniaxialTension');
             testCase.verifyClass(ldem.scenarios.fromTestId(102), ...
                 'ldem.scenarios.FourPointBending');
+            testCase.verifyClass(ldem.scenarios.fromTestId(103), ...
+                'ldem.scenarios.ClampedBeam');
         end
 
         function factoryRejectsUnknownTest(testCase)
@@ -15,7 +17,7 @@ classdef TestScenarios < LdemTestCase
         end
 
         function everyScenarioIsRegisteredUnderItsOwnId(testCase)
-            for id = [101 102]
+            for id = [101 102 103]
                 testCase.verifyEqual(ldem.scenarios.fromTestId(id).testId, id);
             end
         end
@@ -92,6 +94,72 @@ classdef TestScenarios < LdemTestCase
             % Positions that fall between two lines of centre nodes.
             scenario = ldem.scenarios.FourPointBending(supportPosition=2.0, loadPosition=10.5);
             testCase.verifyError(@() scenario.fixedDofs(nodes, params), ...
+                'ldem:scenarios:noNodesSelected');
+        end
+
+        function clampedBeamHoldsTheCentreNodesOfBothEndLayers(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            nodes = ldem.mesh.buildNodes(params.nModules, params.moduleLength);
+            fixed = ldem.scenarios.ClampedBeam().fixedDofs(nodes, params);
+
+            testCase.verifySize(fixed, [params.nNodes 3]);
+            clamped = any(fixed, 2);
+            testCase.verifyTrue(all(fixed(clamped, :), 'all'), 'A clamped node is held in x, y and z.');
+            % Two layers of (M-1)*(N-1) = 9 centre nodes.
+            testCase.verifyEqual(nnz(clamped), 18);
+            z = round(nodes(clamped, 3) / params.moduleLength * 2) / 2;
+            testCase.verifyEqual(unique(z).', [0.5, 9.5]);
+        end
+
+        function clampedBeamLoadsTheMidSpanLineOnTheBottomFace(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            nodes = ldem.mesh.buildNodes(params.nModules, params.moduleLength);
+            scenario = ldem.scenarios.ClampedBeam();
+            loaded = scenario.loadedNodes(nodes, params);
+            lco = params.moduleLength;
+
+            testCase.verifyEqual(nnz(loaded), 3);
+            testCase.verifyEqual(unique(round(nodes(loaded, 3) / lco * 2) / 2), 4.5);
+            testCase.verifyEqual(unique(round(nodes(loaded, 2) / lco * 2) / 2), 0.5);
+            testCase.verifyFalse(any(loaded & any(scenario.fixedDofs(nodes, params), 2)), ...
+                'The load must not sit on a clamped node.');
+        end
+
+        function clampedBeamForceGrowsLinearlyThenStaysConstant(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            mesh = ldem.mesh.buildMesh(params);
+            scenario = ldem.scenarios.ClampedBeam(forceRate=1000, rampTime=0.00035);
+            [~, history] = ldem.material.buildBarProperties(mesh, params);
+            state = ldem.solver.initialState(mesh, history);
+            loaded = scenario.loadedNodes(mesh.nodes0, params);
+
+            for t = [1e-4, 3.5e-4, 1e-3]
+                state.time = t;
+                state = scenario.applyLoads(state, mesh, params);
+                testCase.verifyEqual(state.appliedForce(loaded, 2), ...
+                    1000 * min(t, 0.00035) * ones(3, 1), 'AbsTol', 1e-12);
+            end
+            other = state.appliedForce;
+            other(loaded, 2) = 0;
+            testCase.verifyEqual(other, zeros(size(other)), 'Only y of the loaded nodes may carry force.');
+            testCase.verifyEqual(state.displacement, mesh.nodes0, 'A force scenario must not move nodes.');
+        end
+
+        function clampedBeamReactionSumsTheBarForceOnTheClampedEnds(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            mesh = ldem.mesh.buildMesh(params);
+            [~, history] = ldem.material.buildBarProperties(mesh, params);
+            state = ldem.solver.initialState(mesh, history);
+            state.force(:, 2) = (1:params.nNodes).';
+            reaction = ldem.scenarios.ClampedBeam().reactions(state, mesh, params);
+            testCase.verifyEqual(reaction, [0, sum(find(mesh.fixed(:, 2))), 0]);
+        end
+
+        function clampedBeamReportsALoadLineThatMatchesNoNode(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            nodes = ldem.mesh.buildNodes(params.nModules, params.moduleLength);
+            scenario = ldem.scenarios.ClampedBeam(loadPosition=4);   % grid nodes, not centre nodes
+            testCase.verifyError(@() scenario.loadedNodes(nodes, params), ...
                 'ldem:scenarios:noNodesSelected');
         end
 

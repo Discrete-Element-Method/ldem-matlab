@@ -36,6 +36,11 @@ Ensayos disponibles
    ``ldem.scenarios.FourPointBending`` (``supportPosition``, ``loadPosition``,
    en módulos desde cada extremo); los valores por defecto requieren una viga de
    más de unos 70 módulos. Ver ``examples/beam_102``.
+``testId = 103``
+   Viga empotrada en los dos extremos, cargada a media luz con una fuerza que
+   crece linealmente y luego se mantiene constante
+   (``ldem.scenarios.ClampedBeam``). Es el único ensayo cargado con una fuerza
+   en lugar de un desplazamiento. Ver ``examples/example1_clamped_beam``.
 
 Para agregar un ensayo nuevo se crea una subclase de
 ``ldem.scenarios.Scenario``.

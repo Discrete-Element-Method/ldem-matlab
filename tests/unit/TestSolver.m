@@ -60,6 +60,21 @@ classdef TestSolver < LdemTestCase
                 states{n} = state;
             end
         end
+
+        function [state, params] = runWithAppliedForce(testCase, force, nSteps)
+            % Apply a constant force along x on the free node of the spring.
+            params = ldem.Parameters(dt=2e-7, dampingInitial=4000, dampingFinal=4000, ...
+                dampingSwitchTime=1);
+            [mesh, barProps, history] = testCase.oscillator();
+            state = ldem.solver.initialState(mesh, history);
+            for n = 1:nSteps
+                state.step = n;
+                state.time = state.time + params.dt;
+                state.appliedForce(2, 1) = force;
+                state = ldem.solver.computeBarForces(state, mesh, barProps, params);
+                state = ldem.solver.integrateStep(state, mesh, barProps, params);
+            end
+        end
     end
 
     methods (Test, TestTags = {'Unit'})
@@ -164,6 +179,31 @@ classdef TestSolver < LdemTestCase
             testCase.verifyGreaterThan(e.external, 0, 'Pushing the structure is positive work.');
             testCase.verifyEqual(e.internal, e.external, 'RelTol', 5e-3);
             testCase.verifyEqual(e.balance, e.external - e.internal);
+        end
+
+        function appliedForceStretchesTheSpringToItsStaticValue(testCase)
+            % A constant force on the free node of the spring settles at F/k.
+            force = 10;                                       % [N]
+            [state, params] = testCase.runWithAppliedForce(force, 20000);
+            expected = force * testCase.L / testCase.E1;
+            testCase.verifyEqual(state.displacement(2, 1) - testCase.L, expected, 'RelTol', 2e-3);
+            testCase.verifyEqual(state.appliedForce(2, 1), force);
+            testCase.verifyEqual(params.dt, 2e-7);
+        end
+
+        function appliedForceWorkBalancesTheEnergy(testCase)
+            % External work = elastic + kinetic + damping energy; at rest half
+            % of F*x is stored and half was dissipated.
+            force = 10;
+            [state, params] = testCase.runWithAppliedForce(force, 20000);
+            [mesh, barProps, ~] = testCase.oscillator();
+            e = ldem.solver.computeEnergies(state, mesh, barProps, params);
+
+            x = force * testCase.L / testCase.E1;
+            testCase.verifyEqual(e.external, force * x, 'RelTol', 2e-3);
+            testCase.verifyEqual(e.elastic, force * x / 2, 'RelTol', 2e-3);
+            testCase.verifyEqual(e.balance / e.external, 0, 'AbsTol', 2e-3);
+            testCase.verifyGreaterThan(e.damping, 0);
         end
 
         function aSupportThatDoesNotMoveDoesNoWork(testCase)
