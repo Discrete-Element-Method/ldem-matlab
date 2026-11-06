@@ -2,8 +2,8 @@ function ax = plotEnergy(results, ax)
 %PLOTENERGY  Plot the energies of a simulation versus time.
 %
 %   ax = ldem.post.plotEnergy(results) draws the kinetic, elastic, damage and
-%   damping energies, and their sum, in the current axes (a new figure if
-%   there are none).
+%   damping energies, their sum (internal) and the external work, in the
+%   current axes (a new figure if there are none).
 %
 %   ax = ldem.post.plotEnergy(results, ax) draws in the given axes.
 %
@@ -39,8 +39,9 @@ if isempty(ax)
 end
 
 plot(ax, e.time, e.kinetic, e.time, e.elastic, e.time, e.damage, e.time, e.damping, ...
-    e.time, e.internal, 'k--', 'LineWidth', 1.2);
-legend(ax, 'Kinetic', 'Elastic', 'Damage', 'Damping', 'Total', 'Location', 'best');
+    e.time, e.internal, 'k--', e.time, e.external, 'r:', 'LineWidth', 1.2);
+legend(ax, 'Kinetic', 'Elastic', 'Damage', 'Damping', 'Internal (sum)', 'External work', ...
+    'Location', 'best');
 xlabel(ax, 'Time [s]');
 ylabel(ax, 'Energy [J]');
 title(ax, 'Energies');

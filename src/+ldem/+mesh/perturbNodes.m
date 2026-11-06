@@ -23,8 +23,9 @@ function nodes = perturbNodes(nodes, nModules, moduleLength, seed, cv)
 %
 %   Note: the legacy code contains this feature but disables it (it sets
 %   LABELN=1 and immediately LABELN=0), so the legacy results correspond to
-%   no perturbation. ldem.Parameters.meshPerturbation.enabled is false by
-%   default for the same reason.
+%   no perturbation. ldem.Parameters.meshPerturbation is 0 (off) by default
+%   for the same reason; a positive value switches the perturbation on and is
+%   used as cv.
 %
 %   Legacy: IMPERF.
 %

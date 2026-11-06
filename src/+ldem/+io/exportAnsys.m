@@ -15,8 +15,13 @@ function counts = exportAnsys(path, mesh, state)
 %   file, so the damaged zone is easy to see.
 %
 %   The constraint section lists the degrees of freedom held by the scenario
-%   (mesh.fixed). Node positions are written in single precision, like the
-%   legacy code.
+%   (mesh.fixed), with value zero. The applied-loads section then gives, as
+%   "D,node,direction,value", the displacement imposed on the loaded nodes
+%   measured from their initial position (nothing is written at time zero).
+%   Note that the node coordinates of the file are the current positions, so
+%   the file shows the state of the simulation; it is not a restart of the
+%   analysis from the undeformed lattice. Node positions are written in
+%   single precision, like the legacy code.
 %
 %   Inputs:
 %     path   Path of the file to create.
@@ -33,8 +38,9 @@ function counts = exportAnsys(path, mesh, state)
 %   Differences from the legacy file: the line "ET,IFILE,4" (an invalid
 %   command caused by a translation slip) is written as "ET,3,4"; the
 %   constraints are written for every scenario, not only for TEST 102; and
-%   the hardcoded "applied loads" of TEST 102 are not written (they did not
-%   match any node of the beam).
+%   the hardcoded "applied loads" of TEST 102 ("F,node,Fx,-10" on nodes that
+%   matched no node of the beam) are replaced by the imposed displacements
+%   of the loaded nodes.
 %
 %   Example:
 %       counts = ldem.io.exportAnsys("step100.mac", mesh, state);
@@ -109,7 +115,18 @@ for node = find(any(mesh.fixed, 2)).'
 end
 fprintf(fid, '\n');
 
-fprintf(fid, '!CARGAS APLICADAS\n');
+% Applied loads: the displacement imposed on the held degrees of freedom of
+% the loaded nodes, measured from their initial position. ANSYS keeps the
+% last constraint given to a degree of freedom, so these lines replace the
+% zero-valued ones of the section above.
+fprintf(fid, '!CARGAS APLICADAS (DESLOCAMENTO IMPOSTO DESDE A POSICAO INICIAL)\n');
+imposed = state.displacement - mesh.nodes0;
+imposed(~mesh.fixed) = 0;
+for node = find(any(imposed ~= 0, 2)).'
+    for direction = find(imposed(node, :) ~= 0)
+        fprintf(fid, 'D,%d,%s,%g\n', node, directions(direction), imposed(node, direction));
+    end
+end
 fprintf(fid, '\n');
 
 fprintf(fid, '/VIEW,1,0,-1,0\n');

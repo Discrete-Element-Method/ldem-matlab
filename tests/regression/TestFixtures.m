@@ -5,7 +5,10 @@ classdef TestFixtures < matlab.unittest.TestCase
     %   definitions and exercise the interesting branches (damage), so they
     %   are useful as references. Does not run any simulation.
     %
-    %   See also TestLegacyReproducibility, generateReference.
+    %   The fixtures were generated with the corrected original code (git tag
+    %   legacy-reference); see docs/known-issues/KNOWN_ISSUES.md.
+    %
+    %   See also referenceCases.
 
     properties (TestParameter)
         caseName = {'tension101_elastic', 'tension101_damage', 'bending102'}

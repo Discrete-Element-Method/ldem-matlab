@@ -32,11 +32,25 @@ Ensayos disponibles
    Carga uniaxial: los nodos centrales de la última columna de módulos se
    mueven en :math:`x` con velocidad impuesta.
 ``testId = 102``
-   Viga con dos apoyos y un punto de carga (requiere una viga de más de unos
-   70 módulos). Ver ``examples/beam_102``.
+   Viga con dos apoyos y dos puntos de carga. Las posiciones son parámetros de
+   ``ldem.scenarios.FourPointBending`` (``supportPosition``, ``loadPosition``,
+   en módulos desde cada extremo); los valores por defecto requieren una viga de
+   más de unos 70 módulos. Ver ``examples/beam_102``.
 
 Para agregar un ensayo nuevo se crea una subclase de
 ``ldem.scenarios.Scenario``.
+
+Perturbación de la malla
+------------------------
+
+El parámetro ``meshPerturbation`` desplaza al azar los nodos interiores. Su
+valor es la desviación estándar como fracción de la longitud del módulo: ``0``
+(el valor por defecto) deja el reticulado regular y cualquier valor positivo
+activa la perturbación con ese valor. Los números aleatorios siguen a ``seed``.
+
+.. code-block:: matlab
+
+   >> params = ldem.Parameters(testId=101, nModules=[6 3 3], meshPerturbation=0.02);
 
 Qué se obtiene: la estructura ``results``
 -----------------------------------------
@@ -51,8 +65,16 @@ Qué se obtiene: la estructura ``results``
      - Versión de ldem, fecha, versión de MATLAB, tiempo de cálculo [s].
    * - ``params``
      - Los parámetros usados, como estructura simple (con valores derivados).
+   * - ``model``
+     - Cantidades y masa del modelo: módulos, nodos, barras por tipo, grados de
+       libertad fijos, masa total y volumen.
+   * - ``material``
+     - Datos del material (E, Gf, ...), coeficientes del reticulado, longitud
+       crítica y estadísticas de la deformación crítica (media, coeficiente de
+       variación, mínimo y máximo).
    * - ``mesh``
-     - Posiciones iniciales, apoyos (``fixed``), masas, barras y longitudes.
+     - Posiciones iniciales, apoyos (``fixed``), masas, barras, longitudes y
+       tipos de barra.
    * - ``barProps``
      - Rigidez, deformación crítica y deformación de rotura de cada barra.
    * - ``controlNodes``
@@ -61,15 +83,22 @@ Qué se obtiene: la estructura ``results``
      - Tiempo y fuerza de reacción del ensayo (viga: fuerza vertical).
    * - ``energy``
      - Tiempo, energías cinética, elástica, de daño y de amortiguamiento [J],
-       su suma (``internal``) y la tasa de daño.
+       su suma (``internal``), el trabajo externo, el balance (``balance``,
+       externo menos interno) y la tasa de daño.
    * - ``trackedBar``
      - Deformación, fuerza y energía de daño de una barra en cada paso
        (opcional).
    * - ``snapshots``
      - Paso, tiempo, número de barras intactas/dañadas/rotas y copias
-       compactas de los desplazamientos y del estado de daño.
+       compactas de los desplazamientos, del estado de daño y de la energía
+       cinética de cada nodo.
    * - ``final``
-     - Desplazamiento, velocidad, fuerza y estado de daño finales.
+     - Desplazamiento, velocidad, fuerza y estado de daño finales, y la energía
+       cinética de cada nodo.
+
+El ``balance`` de energía es una comprobación de la simulación: debe ser una
+fracción pequeña (menos del 1 %) del trabajo externo final. La energía cinética
+total es ``energy.kinetic``; la de cada nodo está en ``final.kineticEnergy``.
 
 ``results.mat`` contiene esta estructura y se carga sin el paquete:
 
@@ -85,7 +114,10 @@ Archivos de salida
    La estructura ``results`` (formato v7.3, legible desde Python con ``h5py``).
 ``snapshot_0000.mac``, ``snapshot_0001.mac``, ...
    Macros de ANSYS con el reticulado deformado. Las barras son elementos de
-   tipo 1 (intactas), 2 (dañadas) y 5 (rotas).
+   tipo 1 (intactas), 2 (dañadas) y 5 (rotas). Los grados de libertad fijos
+   se listan como ``D,nodo,dirección`` y el desplazamiento impuesto a los
+   nodos cargados, medido desde su posición inicial, como
+   ``D,nodo,dirección,valor``.
 ``snapshot_0000.vtu``, ... y ``snapshots.pvd``
    Archivos VTK. Abrir ``snapshots.pvd`` en `ParaView <https://www.paraview.org>`_;
    colorear por ``damageState`` (datos de celda) para ver las fisuras y usar
@@ -102,4 +134,4 @@ Ejecutar los tests
 
    >> addpath tests
    >> run_tests                          % tests rápidos
-   >> run_tests(IncludeSlow=true)        % también repite las simulaciones originales
+   >> run_tests(IncludeSlow=true)        % también los tests lentos

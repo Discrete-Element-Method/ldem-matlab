@@ -60,9 +60,38 @@ classdef TestExporters < LdemTestCase
             path = fullfile(testCase.tempFolder(), "state.mac");
             ldem.io.exportAnsys(path, testCase.Mesh, testCase.State);
             lines = splitlines(string(fileread(path)));
-            constraints = lines(startsWith(lines, "D,"));
+            constraints = lines(startsWith(lines, "D,") & count(lines, ",") == 2);
             testCase.verifyEqual(numel(constraints), nnz(testCase.Mesh.fixed));
             testCase.verifyTrue(all(endsWith(constraints, "UX")), 'Tension fixes x only.');
+        end
+
+        function ansysAppliedLoadsAreTheImposedDisplacements(testCase)
+            path = fullfile(testCase.tempFolder(), "state.mac");
+            ldem.io.exportAnsys(path, testCase.Mesh, testCase.State);
+            lines = splitlines(string(fileread(path)));
+            loads = lines(startsWith(lines, "D,") & count(lines, ",") == 3);
+
+            imposed = testCase.State.displacement - testCase.Mesh.nodes0;
+            imposed(~testCase.Mesh.fixed) = 0;
+            testCase.verifyEqual(numel(loads), nnz(imposed));
+            testCase.verifyNotEmpty(loads, 'The loaded nodes have moved by the end of the run.');
+            for k = 1:numel(loads)
+                parts = split(loads(k), ",");
+                node = str2double(parts(2));
+                direction = find(["UX" "UY" "UZ"] == parts(3));
+                testCase.verifyTrue(testCase.Mesh.fixed(node, direction), ...
+                    'Only held degrees of freedom receive an imposed displacement.');
+                testCase.verifyEqual(str2double(parts(4)), imposed(node, direction), 'RelTol', 1e-5);
+            end
+        end
+
+        function ansysHasNoImposedDisplacementAtTimeZero(testCase)
+            path = fullfile(testCase.tempFolder(), "initial.mac");
+            state = testCase.State;
+            state.displacement = testCase.Mesh.nodes0;
+            ldem.io.exportAnsys(path, testCase.Mesh, state);
+            lines = splitlines(string(fileread(path)));
+            testCase.verifyFalse(any(startsWith(lines, "D,") & count(lines, ",") == 3));
         end
 
         function ansysCoordinatesAreTheCurrentPositions(testCase)

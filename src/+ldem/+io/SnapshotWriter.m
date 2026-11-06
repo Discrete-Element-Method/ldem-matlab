@@ -5,7 +5,7 @@ classdef SnapshotWriter < handle
     %   calls the writer at the steps chosen by params.output.snapshotEvery.
     %   For every snapshot the writer does the following:
     %
-    %   * keeps a compact copy (displacement and damage state), stored in the results;
+    %   * keeps a compact copy (displacement, damage state and nodal kinetic energy), stored in the results;
     %   * writes an ANSYS macro file if "ansys" is among the formats;
     %   * writes a VTK file if "vtk" is among the formats.
     %
@@ -40,6 +40,7 @@ classdef SnapshotWriter < handle
         BarCounts = zeros(0, 3)
         Displacements = {}
         DamageStates = {}
+        KineticEnergies = {}
         VtkFiles = strings(0, 1)
     end
 
@@ -95,6 +96,7 @@ classdef SnapshotWriter < handle
             obj.BarCounts(end + 1, :) = [counts.intact, counts.damaged, counts.broken];
             obj.Displacements{end + 1} = single(state.displacement);
             obj.DamageStates{end + 1} = damageState;
+            obj.KineticEnergies{end + 1} = single(ldem.solver.nodalKineticEnergy(state, obj.Mesh));
         end
 
         function snapshots = finish(obj)
@@ -104,7 +106,8 @@ classdef SnapshotWriter < handle
             %   step, time (n-by-1), barCounts (n-by-3: intact, damaged,
             %   broken), and displacement (n-by-1 cell of nNodes-by-3 single)
             %   and damageState (n-by-1 cell of nBars-by-1 uint8: 0 intact,
-            %   1 damaged, 2 broken).
+            %   1 damaged, 2 broken), and kineticEnergy (n-by-1 cell of
+            %   nNodes-by-1 single: kinetic energy of every node [J]).
             arguments
                 obj (1,1) ldem.io.SnapshotWriter
             end
@@ -117,7 +120,8 @@ classdef SnapshotWriter < handle
                 'time',         obj.Times, ...
                 'barCounts',    obj.BarCounts, ...
                 'displacement', {obj.Displacements(:)}, ...
-                'damageState',  {obj.DamageStates(:)});
+                'damageState',  {obj.DamageStates(:)}, ...
+                'kineticEnergy', {obj.KineticEnergies(:)});
         end
     end
 

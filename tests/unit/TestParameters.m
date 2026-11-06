@@ -86,10 +86,11 @@ classdef TestParameters < LdemTestCase
             testCase.verifyError(@() ldem.Parameters(output=tooOften), 'ldem:params:badOutput');
         end
 
-        function meshPerturbationIsChecked(testCase)
-            testCase.verifyError( ...
-                @() ldem.Parameters(meshPerturbation=struct('enabled', true)), ...
-                'ldem:params:badMeshPerturbation');
+        function meshPerturbationIsOffByDefaultAndMustBeNonNegative(testCase)
+            testCase.verifyEqual(ldem.Parameters().meshPerturbation, 0);
+            testCase.verifyEqual(ldem.Parameters(meshPerturbation=0.05).meshPerturbation, 0.05);
+            testCase.verifyError(@() ldem.Parameters(meshPerturbation=-0.1), ?MException);
+            testCase.verifyError(@() ldem.Parameters(meshPerturbation=Inf), ?MException);
         end
 
         function valueSemantics(testCase)

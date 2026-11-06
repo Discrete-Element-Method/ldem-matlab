@@ -20,7 +20,10 @@ function cases = referenceCases()
 %
 %   The remaining material and numerical parameters are shared (see below).
 %
-%   See also generateReference, runLegacyCase, writeDataFile.
+%   The golden-master fixtures in tests/fixtures were produced by running
+%   these cases with the corrected original code (git tag legacy-reference).
+%
+%   See also writeDataFile.
 
 shared = struct( ...
     'seed',          123, ...

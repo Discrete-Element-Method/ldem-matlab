@@ -17,6 +17,18 @@ function state = integrateStep(state, mesh, barProps, params)
 %   differences, the energy dissipated by damping is accumulated and the two
 %   stored positions are shifted (current -> previous, next -> current).
 %
+%   External work. A degree of freedom fixed by the scenario follows a
+%   prescribed path (a support does not move, a loaded node moves with the
+%   loading velocity). The force that the outside world exerts on it is minus
+%   the bar force, so the work done on the structure in the step is
+%   -F*(u - u_prev), with F the average of the bar force of this step and of the
+%   previous one (trapezoidal rule). It is summed over the fixed degrees of
+%   freedom: zero for a support that does not move, positive when a prescribed
+%   motion pushes the structure. The inertia of the prescribed nodes is not
+%   included; it is negligible against the energy of the structure. Adding up
+%   the steps gives the external work, which balances the kinetic, elastic,
+%   damage and damping energies (see ldem.solver.computeEnergies).
+%
 %   The energy dissipated in the step has two parts: the mass-proportional
 %   damping of the nodes, c*(m/2)*v*(u_next - u_prev), and the viscous term
 %   of the constitutive law, E*CON*rate^2*dt*L for every bar (E is the
@@ -31,7 +43,7 @@ function state = integrateStep(state, mesh, barProps, params)
 %
 %   Output:
 %     state  Updated: displacement, previousDisplacement, velocity,
-%            acceleration and dampingEnergy.
+%            acceleration, dampingEnergy, externalEnergy and previousForce.
 %
 %   Errors:
 %     ldem:solver:zeroMass  A node has zero mass.
@@ -83,6 +95,12 @@ barViscous = 2.0 * (stiffness .* params.constitutiveDamping .* state.strainRate 
     state.strainRate .* dt .* mesh.barLength ./ 2.0);
 dissipated = dissipated + sum(barViscous);
 
+% Work of the outside world on the fixed degrees of freedom (trapezoidal rule).
+averageForce = (state.force(mesh.fixed) + state.previousForce(mesh.fixed)) / 2.0;
+externalWork = -sum(averageForce .* (u(mesh.fixed) - uPrev(mesh.fixed)));
+
+state.externalEnergy       = state.externalEnergy + externalWork;
+state.previousForce        = state.force;
 state.dampingEnergy        = state.dampingEnergy + dissipated;
 state.previousDisplacement = u;
 state.displacement         = uNext;

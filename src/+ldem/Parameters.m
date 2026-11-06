@@ -95,10 +95,13 @@ classdef Parameters
         % Legacy: file "arquivo_3lc_rnao_cv05".
         randomFieldFile (1,1) string = ""
 
-        % Optional random perturbation of the node coordinates.
-        % enabled: apply it; cv: standard deviation as a fraction of the
-        % module length. Legacy: LABELN (always 0) and CVUVW = 0.02.
-        meshPerturbation (1,1) struct = struct('enabled', false, 'cv', 0.02)
+        % Random perturbation of the node coordinates, as the standard
+        % deviation expressed as a fraction of the module length. 0 (the
+        % default) switches the perturbation off; any positive value
+        % switches it on with that value (for example 0.02 displaces the
+        % nodes by about 2 % of the module length). Legacy: LABELN (always
+        % 0, so the legacy results have no perturbation) and CVUVW = 0.02.
+        meshPerturbation (1,1) double {mustBeNonnegative, mustBeFinite} = 0
 
         % How often each result is stored, in time steps (0 = never):
         %
@@ -188,22 +191,13 @@ classdef Parameters
                     'output.trackedBarEvery must be 0 or 1 (the tracked bar is stored at every step).');
             end
 
-            % Mesh perturbation settings.
-            mp = obj.meshPerturbation;
-            if ~isequal(sort(fieldnames(mp)), sort({'enabled'; 'cv'})) || ...
-                    ~(isscalar(mp.enabled) && (islogical(mp.enabled) || isnumeric(mp.enabled))) || ...
-                    ~(isnumeric(mp.cv) && isscalar(mp.cv) && mp.cv >= 0 && isfinite(mp.cv))
-                error('ldem:params:badMeshPerturbation', ...
-                    'meshPerturbation must be a struct with a logical "enabled" and a non-negative "cv".');
-            end
-
             % Time integration.
             if obj.totalTime < obj.dt
                 error('ldem:params:totalTimeTooShort', ...
                     'totalTime (%g s) must be at least one time step (dt = %g s).', ...
                     obj.totalTime, obj.dt);
             end
-            if ~obj.meshPerturbation.enabled && obj.dt > obj.criticalTimeStep
+            if obj.meshPerturbation == 0 && obj.dt > obj.criticalTimeStep
                 error('ldem:params:unstableTimeStep', ...
                     ['The time step dt = %g s is unstable. For moduleLength = %g m, ' ...
                      'youngModulus = %g Pa and density = %g kg/m^3 it must not exceed ' ...

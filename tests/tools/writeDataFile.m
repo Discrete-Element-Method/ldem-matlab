@@ -1,15 +1,15 @@
 function writeDataFile(path, c)
-%WRITEDATAFILE  Write a legacy DATA0.DAT input file from a case definition.
+%WRITEDATAFILE  Write a DATA0.DAT input file from a case definition.
 %
-%   writeDataFile(path, c) creates the input file read by the legacy routine
-%   READ_DAT0. Only the first token of each line is read by the legacy code;
-%   the quoted label after it is a comment for humans.
+%   writeDataFile(path, c) creates an input file in the format of the original
+%   program, which ldem.io.readInputFile reads. Only the first token of each
+%   line is read; the quoted label after it is a comment for humans.
 %
 %   Inputs:
 %     path  Full path of the file to create.
 %     c     Case struct, see referenceCases.
 %
-%   See also referenceCases, runLegacyCase.
+%   See also referenceCases.
 
 fid = fopen(path, 'w');
 if fid == -1

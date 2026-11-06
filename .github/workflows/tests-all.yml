@@ -1,7 +1,7 @@
 name: tests-all
 
-# The slow tests start child MATLAB processes that re-run the legacy simulations
-# (about 5 minutes). They are run on demand, not on every push.
+# The slow tests build the complete beam model of the example (about 167,000
+# nodes). They are run on demand, not on every push.
 on:
   workflow_dispatch:
 

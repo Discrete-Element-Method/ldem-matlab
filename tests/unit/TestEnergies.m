@@ -19,7 +19,8 @@ classdef TestEnergies < LdemTestCase
         function everythingIsZeroAtRest(testCase)
             [mesh, barProps, ~, state, params] = testCase.oneBar();
             e = ldem.solver.computeEnergies(state, mesh, barProps, params);
-            for name = {'kinetic', 'elastic', 'damage', 'damping', 'internal', 'brokenBars', 'damageRate'}
+            for name = {'kinetic', 'elastic', 'damage', 'damping', 'internal', 'brokenBars', ...
+                    'damageRate', 'external', 'balance'}
                 testCase.verifyEqual(e.(name{1}), 0, name{1});
             end
         end
@@ -82,6 +83,24 @@ classdef TestEnergies < LdemTestCase
             e = ldem.solver.computeEnergies(state, mesh, barProps, params);
             testCase.verifyEqual(e.internal, e.kinetic + e.elastic + e.damage + 0.25, 'RelTol', 1e-14);
             testCase.verifyEqual(e.damping, 0.25);
+        end
+
+        function nodalKineticEnergyAddsUpToTheTotal(testCase)
+            [mesh, barProps, ~, state, params] = testCase.oneBar();
+            state.velocity = [3 4 0; 0 0 2];
+            perNode = ldem.solver.nodalKineticEnergy(state, mesh);
+            testCase.verifyEqual(perNode, [0.5 * 2 * 25; 0.5 * 3 * 4], 'RelTol', 1e-14);
+            e = ldem.solver.computeEnergies(state, mesh, barProps, params);
+            testCase.verifyEqual(sum(perNode), e.kinetic, 'RelTol', 1e-14);
+        end
+
+        function balanceIsExternalMinusInternal(testCase)
+            [mesh, barProps, ~, state, params] = testCase.oneBar();
+            state.strain = 5e-4;
+            state.externalEnergy = 1e-3;
+            e = ldem.solver.computeEnergies(state, mesh, barProps, params);
+            testCase.verifyEqual(e.external, 1e-3);
+            testCase.verifyEqual(e.balance, 1e-3 - e.internal, 'RelTol', 1e-14);
         end
 
         function damageRateUsesThePreviousStep(testCase)

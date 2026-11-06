@@ -8,10 +8,9 @@ classdef TestSolverAgainstLegacy < LdemTestCase
     %   damage state, damping switch, energies and the reaction and control
     %   node records of the beam.
     %
-    %   Not compared, because the legacy value is wrong (see
-    %   legacy/KNOWN_ISSUES.md): the acceleration in y (wrong index), the
-    %   external energy (never computed) and the energy vectors, which are
-    %   compared after summing over the nodes.
+    %   Not compared, because the legacy value is not defined (see
+    %   docs/known-issues/KNOWN_ISSUES.md): the external energy (never computed) and the
+    %   energy vectors, which are compared after summing over the nodes.
     %
     %   See also TestMeshAgainstLegacy, TestMaterialAgainstLegacy.
 
@@ -33,7 +32,7 @@ classdef TestSolverAgainstLegacy < LdemTestCase
             testCase.compare(state.displacement, nodal(s.U(2, :), s.V(2, :), s.W(2, :)), 'displacement');
             testCase.compare(state.previousDisplacement, nodal(s.U(1, :), s.V(1, :), s.W(1, :)), 'previous displacement');
             testCase.compare(state.velocity, nodal(s.VLX, s.VLY, s.VLZ), 'velocity');
-            testCase.compare(state.acceleration(:, [1 3]), [s.ACX(:), s.ACZ(:)], 'acceleration (x and z)');
+            testCase.compare(state.acceleration, nodal(s.ACX, s.ACY, s.ACZ), 'acceleration');
             testCase.compare(state.force, nodal(s.FRX, s.FRY, s.FRZ), 'nodal force');
         end
 

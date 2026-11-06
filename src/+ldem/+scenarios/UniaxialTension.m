@@ -3,7 +3,9 @@ classdef UniaxialTension < ldem.scenarios.Scenario
     %
     %   The centre nodes of the last column of the prism are moved along x
     %   with a constant velocity, while the centre nodes of the first column
-    %   are held in x.
+    %   are held in x. The loaded nodes are also held in x, so the prescribed
+    %   displacement is exact and the energy balance of the simulation closes
+    %   (the work done on them is the external work).
     %
     %   Sign convention (as in the legacy code): the loaded nodes move to
     %   x0 - loadingVelocity*time, so a positive loadingVelocity pushes them
@@ -13,7 +15,10 @@ classdef UniaxialTension < ldem.scenarios.Scenario
     %   Create it with a different velocity using
     %       scenario = ldem.scenarios.UniaxialTension(loadingVelocity=1e-3);
     %
-    %   Legacy: the "TEST == 101" branches of BOUND and CALOAD.
+    %   Legacy: the "TEST == 101" branches of BOUND and CALOAD. The legacy
+    %   BOUND wrote the right-end condition with a misplaced parenthesis, so it
+    %   selected no node and the loaded nodes were not held; this was corrected
+    %   in the original code and here (docs/known-issues/KNOWN_ISSUES.md, items 3 and 19).
     %
     %   See also ldem.scenarios.Scenario.
 
@@ -41,11 +46,8 @@ classdef UniaxialTension < ldem.scenarios.Scenario
         function fixed = fixedDofs(obj, nodes0, params)
             %FIXEDDOFS  Fix the x-motion of the centre nodes of both end faces.
             %
-            %   NOTE (reproduces the legacy code): the right-end condition
-            %   is written with the legacy operator precedence,
-            %   (M1 - 0.51*LCO) instead of (M1 - 0.51)*LCO, so it selects no
-            %   node and only the left end is fixed. See
-            %   legacy/KNOWN_ISSUES.md, item 3.
+            %   The first column of centre nodes is the support and the last
+            %   column is the loaded one (its x-motion is imposed by applyLoads).
             arguments
                 obj (1,1) ldem.scenarios.UniaxialTension %#ok<INUSA>
                 nodes0 (:,3) double
@@ -56,7 +58,7 @@ classdef UniaxialTension < ldem.scenarios.Scenario
             x   = nodes0(:, 1);
 
             leftEnd  = (x < (0.51 * LCO)) & (x > (0.49 * LCO));
-            rightEnd = (x > (M1 - 0.51 * LCO)) & (x < (M1 - 0.49 * LCO));
+            rightEnd = (x > ((M1 - 0.51) * LCO)) & (x < ((M1 - 0.49) * LCO));
 
             fixed = false(size(nodes0));
             fixed(leftEnd | rightEnd, 1) = true;

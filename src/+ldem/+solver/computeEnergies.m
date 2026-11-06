@@ -14,6 +14,23 @@ function energy = computeEnergies(state, mesh, barProps, params)
 %     internal    kinetic + elastic + damage + damping.
 %     brokenBars  Total fracture energy of the bars that have broken.
 %     damageRate  Change of the damage energy per unit time since the previous step [W].
+%     external    Work done so far by the supports and the prescribed motion (state.externalEnergy).
+%     balance     external - internal: the part of the work that is not accounted for.
+%
+%   Energy balance. In a model whose loading acts on degrees of freedom fixed
+%   by the scenario, the balance is close to zero: the external work becomes
+%   kinetic, elastic, damage or damping energy. It is not exactly zero because
+%   the scheme is second-order accurate and because the kinetic energy of the
+%   prescribed nodes (which the outside world supplies) is included in
+%   kinetic like in the legacy code; both effects are small. Judge the balance
+%   relative to the final external work: in the reference tests it is between
+%   0.01 % and 0.5 % (it shrinks with the number of steps, because the scheme
+%   compares the work of the last step with the energy at its end, an error of
+%   about 1/N for energies that grow like t^2).
+%
+%   The balance does not close when the loaded nodes are not held by the
+%   scenario, as in the legacy tension test (see
+%   ldem.scenarios.UniaxialTension).
 %
 %   For a damaged bar with critical strain EP, largest strain EM and
 %   stiffnesses E1 (compression) and E2 (tension), the energy dissipated is
@@ -34,9 +51,12 @@ function energy = computeEnergies(state, mesh, barProps, params)
 %
 %   Legacy: ENERG2. There the kinetic and damping energies were vectors (one
 %   entry per node) that were never summed; here they are scalars. The
-%   external work (ENEX) was never computed and is not provided.
+%   external work (ENEX) was never computed in the legacy code.
 %
-%   See also ldem.solver.simulate.
+%   The kinetic energy of each node is available from
+%   ldem.solver.nodalKineticEnergy.
+%
+%   See also ldem.solver.simulate, ldem.solver.nodalKineticEnergy.
 
 arguments
     state (1,1) struct
@@ -46,8 +66,7 @@ arguments
 end
 
 % Kinetic energy.
-speedSquared = state.velocity(:, 1).^2 + state.velocity(:, 2).^2 + state.velocity(:, 3).^2;
-kinetic = sum(mesh.mass .* speedSquared ./ 2.0);
+kinetic = sum(ldem.solver.nodalKineticEnergy(state, mesh));
 
 % Elastic energy of the bars.
 E1 = barProps.stiffness;
@@ -78,4 +97,6 @@ energy.damping    = state.dampingEnergy;
 energy.internal   = kinetic + elastic + damage + state.dampingEnergy;
 energy.brokenBars = brokenBars;
 energy.damageRate = (damage - state.previousDamageEnergy) / params.dt;
+energy.external   = state.externalEnergy;
+energy.balance    = state.externalEnergy - energy.internal;
 end

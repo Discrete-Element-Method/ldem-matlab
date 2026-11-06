@@ -11,7 +11,9 @@ classdef TestAnsysAgainstLegacy < LdemTestCase
     %     * the legacy line "ET,IFILE,4" is an invalid command and the new
     %       file writes "ET,3,4";
     %     * for TEST 101 the legacy file has no constraint lines ("D,..."),
-    %       the new one lists the fixed degrees of freedom.
+    %       the new one lists the fixed degrees of freedom;
+    %     * the new applied-loads section lists the imposed displacements
+    %       ("D,node,direction,value"), the legacy one is empty.
     %
     %   See also TestSolverAgainstLegacy, ldem.io.exportAnsys.
 
@@ -50,6 +52,10 @@ classdef TestAnsysAgainstLegacy < LdemTestCase
             if testId == 101
                 lines(startsWith(lines, "D,")) = [];
             end
+            % The new applied-loads section lists the imposed displacements
+            % ("D,node,dir,value"); the legacy section is empty.
+            lines(startsWith(lines, "D,") & count(lines, ",") == 3) = [];
+            lines(startsWith(lines, "!CARGAS APLICADAS")) = "!CARGAS APLICADAS";
             % Trailing empty lines are not significant.
             while ~isempty(lines) && lines(end) == ""
                 lines(end) = [];

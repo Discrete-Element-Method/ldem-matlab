@@ -1,24 +1,25 @@
 classdef FourPointBending < ldem.scenarios.Scenario
-    %FOURPOINTBENDING  Beam with two supports and a load point (TEST 102).
+    %FOURPOINTBENDING  Beam with two supports and two load points (TEST 102).
     %
-    %   The beam is supported near both ends. A load point on the top face,
-    %   33.5 modules from the right end, is moved down with a constant
-    %   velocity.
+    %   The beam is supported near both ends on the bottom face. Two load
+    %   points on the top face are moved down with a constant velocity.
     %
-    %   The positions are expressed in module units, as in the legacy code
-    %   (supports at 4 modules from each end, load points at 33.5 modules
-    %   from each end), so the scenario only makes sense for beams longer
-    %   than about 70 modules.
+    %   Positions are measured in modules along the beam axis, from the nearest
+    %   end of the beam, and select the line of centre nodes closest to that
+    %   position (windows of +-0.01 modules). Because the centre nodes lie at
+    %   half-integer positions, use values such as 4.5 or 33.5. The defaults are
+    %   the values of the legacy code, which only fit a beam longer than about
+    %   70 modules. If a position does not match any node, fixedDofs throws
+    %   ldem:scenarios:noNodesSelected.
     %
-    %   Behaviour reproduced from the legacy code (see
-    %   legacy/KNOWN_ISSUES.md, items 5 and 11): there are two load points
-    %   and both are held in y, but only the right one is actually moved;
-    %   the left one stays at its initial height and acts as a support.
+    %   Create it with other values using
+    %       scenario = ldem.scenarios.FourPointBending( ...
+    %           supportPosition=2.5, loadPosition=10.5, loadingVelocity=1e-3);
     %
-    %   Create it with a different velocity using
-    %       scenario = ldem.scenarios.FourPointBending(loadingVelocity=1e-3);
-    %
-    %   Legacy: the "TEST == 102" branches of BOUND, CALOAD and CALRES.
+    %   Legacy: the "TEST == 102" branches of BOUND, CALOAD and CALRES. The
+    %   legacy CALOAD only moved the right load point (a wrong condition left the
+    %   other one acting as a support); this was corrected in the original code and here
+    %   (docs/known-issues/KNOWN_ISSUES.md, item 15).
     %
     %   See also ldem.scenarios.Scenario.
 
@@ -29,11 +30,17 @@ classdef FourPointBending < ldem.scenarios.Scenario
     properties
         % Downward velocity of the loaded nodes [m/s]. Legacy: VF2 = 400e-5.
         loadingVelocity (1,1) double {mustBeFinite} = 400e-5
+
+        % Distance from each end of the beam to the support [modules].
+        supportPosition (1,1) double {mustBePositive, mustBeFinite} = 4.5
+
+        % Distance from each end of the beam to the load point [modules].
+        loadPosition (1,1) double {mustBePositive, mustBeFinite} = 33.5
     end
 
     methods
         function obj = FourPointBending(props)
-            %FOURPOINTBENDING  Create the scenario, optionally with a new velocity.
+            %FOURPOINTBENDING  Create the scenario, optionally with other values.
             arguments
                 props.?ldem.scenarios.FourPointBending
             end
@@ -46,52 +53,31 @@ classdef FourPointBending < ldem.scenarios.Scenario
         function fixed = fixedDofs(obj, nodes0, params)
             %FIXEDDOFS  Supports and load points of the beam.
             %
-            %   Fixes x and y at the left support, y at the right support,
-            %   and y at the two load points on the top face (the y-motion
-            %   of the right one is then imposed by applyLoads).
+            %   Fixes x and y at the left support, y at the right support and
+            %   y at the two load points on the top face (the y-motion of the
+            %   load points is then imposed by applyLoads).
             arguments
-                obj (1,1) ldem.scenarios.FourPointBending %#ok<INUSA>
+                obj (1,1) ldem.scenarios.FourPointBending
                 nodes0 (:,3) double
                 params (1,1) ldem.Parameters
             end
-            LCO = params.moduleLength;
-            M1  = params.nModules(1) - 1;
-            N1  = params.nModules(2) - 1;
-            x = nodes0(:, 1);
-            y = nodes0(:, 2);
-
-            leftSupport = (y > (0.49 * LCO)) & (y < (0.51 * LCO)) & ...
-                          (x < (4.51 * LCO)) & (x > (4.49 * LCO));
-            rightSupport = (x > ((M1 - 4.51) * LCO)) & (x < ((M1 - 4.49) * LCO)) & ...
-                           (y < (0.51 * LCO)) & (y > (0.49 * LCO));
-
-            loadRight = (x < ((M1 - 33.49) * LCO)) & (x > ((M1 - 33.51) * LCO)) & ...
-                        (y < ((N1 - 0.49) * LCO)) & (y > ((N1 - 0.51) * LCO));
-            loadLeft  = (x < (33.51 * LCO)) & (x > (33.49 * LCO)) & ...
-                        (y < ((N1 - 0.49) * LCO)) & (y > ((N1 - 0.51) * LCO));
-
+            s = obj.selectNodes(nodes0, params);
             fixed = false(size(nodes0));
-            fixed(leftSupport, 1) = true;
-            fixed(leftSupport | rightSupport | loadRight | loadLeft, 2) = true;
+            fixed(s.leftSupport, 1) = true;
+            fixed(s.leftSupport | s.rightSupport | s.loadLeft | s.loadRight, 2) = true;
         end
 
         function loaded = loadedNodes(obj, nodes0, params)
             %LOADEDNODES  Logical vector of the nodes that are moved down.
             %
-            %   Only the load point at 33.5 modules from the right end (see the
-            %   class description).
+            %   The centre nodes of the two load lines on the top face.
             arguments
-                obj (1,1) ldem.scenarios.FourPointBending %#ok<INUSA>
+                obj (1,1) ldem.scenarios.FourPointBending
                 nodes0 (:,3) double
                 params (1,1) ldem.Parameters
             end
-            LCO = params.moduleLength;
-            M1  = params.nModules(1) - 1;
-            N1  = params.nModules(2) - 1;
-            x = nodes0(:, 1);
-            y = nodes0(:, 2);
-            loaded = (x < (M1 - 33.49) * LCO) & (x > (M1 - 33.51) * LCO) & ...
-                     (y < (N1 - 0.49) * LCO)  & (y > (N1 - 0.51) * LCO);
+            s = obj.selectNodes(nodes0, params);
+            loaded = s.loadLeft | s.loadRight;
         end
 
         function state = applyLoads(obj, state, mesh, params)
@@ -121,6 +107,39 @@ classdef FourPointBending < ldem.scenarios.Scenario
             N1 = params.nModules(2) - 1;
             atTop = mesh.fixed(:, 2) & (mesh.nodes0(:, 2) >= params.moduleLength * (N1 - 0.51));
             reaction = [0, sum(state.force(atTop, 2)), 0];
+        end
+    end
+
+    methods (Access = private)
+        function s = selectNodes(obj, nodes0, params)
+            %SELECTNODES  Masks of the support and load nodes; errors if one is empty.
+            LCO = params.moduleLength;
+            M1  = params.nModules(1) - 1;
+            N1  = params.nModules(2) - 1;
+            x = nodes0(:, 1);
+            y = nodes0(:, 2);
+            tol = 0.01;
+
+            atBottom = (y > (0.5 - tol) * LCO) & (y < (0.5 + tol) * LCO);
+            atTop    = (y > (N1 - 0.5 - tol) * LCO) & (y < (N1 - 0.5 + tol) * LCO);
+            nearLeft  = @(position) (x > (position - tol) * LCO) & (x < (position + tol) * LCO);
+            nearRight = @(position) (x > (M1 - position - tol) * LCO) & (x < (M1 - position + tol) * LCO);
+
+            s.leftSupport  = atBottom & nearLeft(obj.supportPosition);
+            s.rightSupport = atBottom & nearRight(obj.supportPosition);
+            s.loadLeft     = atTop & nearLeft(obj.loadPosition);
+            s.loadRight    = atTop & nearRight(obj.loadPosition);
+
+            for name = fieldnames(s).'
+                if ~any(s.(name{1}))
+                    error('ldem:scenarios:noNodesSelected', ...
+                        ['The %s of the beam test matches no node. The beam has %d modules ' ...
+                         'along x; supportPosition = %g and loadPosition = %g (modules from ' ...
+                         'each end) must fall on a line of centre nodes, e.g. 4.5 or 33.5, ' ...
+                         'and lie inside the beam.'], ...
+                        name{1}, M1, obj.supportPosition, obj.loadPosition);
+                end
+            end
         end
     end
 end

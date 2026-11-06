@@ -5,11 +5,11 @@ Generated automatically from the comments of the ``.m`` files /
 Generada automáticamente desde los comentarios de los ``.m``.
 
 The ``ldem`` package (``src/+ldem``) is the refactored code. It replaces the
-routines of ``legacy/`` step by step; the original routines are kept as a
-frozen reference and are not part of this API (their known problems are in
-``legacy/KNOWN_ISSUES.md``) / El paquete ``ldem`` (``src/+ldem``) es el código
-refactorizado. Las rutinas originales de ``legacy/`` se conservan como
-referencia congelada y no forman parte de esta API.
+original routines, which are kept in the git history (tag
+``legacy-reference``); the problems found in them are listed in
+``docs/known-issues/KNOWN_ISSUES.md`` / El paquete ``ldem`` (``src/+ldem``) es
+el código refactorizado. Reemplaza a las rutinas originales, que se conservan
+en el historial de git (etiqueta ``legacy-reference``).
 
 Running a simulation / Ejecutar una simulación
 ----------------------------------------------
@@ -46,6 +46,7 @@ Mesh / Malla
 .. mat:autofunction:: ldem.mesh.buildBars
 .. mat:autofunction:: ldem.mesh.computeNodalMasses
 .. mat:autofunction:: ldem.mesh.computeBarGeometry
+.. mat:autofunction:: ldem.mesh.summarizeModel
 
 Material
 --------
@@ -56,6 +57,7 @@ Material
 .. mat:autofunction:: ldem.material.computeBarStiffness
 .. mat:autofunction:: ldem.material.buildBarProperties
 .. mat:autofunction:: ldem.material.bilinearLaw
+.. mat:autofunction:: ldem.material.summarizeMaterial
 
 Scenarios / Escenarios de ensayo
 --------------------------------
@@ -78,6 +80,7 @@ Solver
 .. mat:autofunction:: ldem.solver.integrateStep
 .. mat:autofunction:: ldem.solver.dampingCoefficient
 .. mat:autofunction:: ldem.solver.computeEnergies
+.. mat:autofunction:: ldem.solver.nodalKineticEnergy
 .. mat:autofunction:: ldem.solver.checkStability
 
 Post-processing / Postproceso

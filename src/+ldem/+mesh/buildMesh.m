@@ -39,9 +39,9 @@ arguments
 end
 
 nodes = ldem.mesh.buildNodes(params.nModules, params.moduleLength);
-if params.meshPerturbation.enabled
+if params.meshPerturbation > 0
     nodes = ldem.mesh.perturbNodes(nodes, params.nModules, params.moduleLength, ...
-        params.seed, params.meshPerturbation.cv);
+        params.seed, params.meshPerturbation);
 end
 
 mesh = struct();

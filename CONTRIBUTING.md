@@ -33,15 +33,15 @@ Rules that keep the Sphinx build free of warnings:
   explanations in a paragraph after the list.
 - Leave a blank comment line before an indented block (list, example, table).
 
-Comments in new code are written in English (the legacy code keeps its original
-Portuguese comments). Names: `lowerCamelCase` for functions and variables,
+Comments are written in English. Names: `lowerCamelCase` for functions and variables,
 `UpperCamelCase` for classes. Validate inputs with an `arguments` block and throw
 errors with an identifier of the form `ldem:<area>:<problem>`.
 
 ## Workflow
 1. Branch from `dev`.
 2. Add or adjust tests in `tests/` (`Test*.m`, `matlab.unittest`): `tests/unit`
-   for new code, `tests/regression` for comparisons with the legacy results.
+   for the behaviour of each function, `tests/regression` for comparisons with
+   the golden-master results of the original code.
 3. Run `buildtool` in MATLAB from the repository root. It runs the Code
    Analyzer (`check`, which must report nothing) and the fast tests with
    coverage (`test`). Before opening the pull request also run
@@ -54,21 +54,22 @@ errors with an identifier of the form `ldem:<area>:<problem>`.
 | `buildtool` | `check` and `test` (default) |
 | `buildtool check` | Code Analyzer on `src/`, `tests/` and `examples/`; any warning fails |
 | `buildtool test` | Fast tests; writes `test-results/results.xml` and `code-coverage/coverage.xml` |
-| `buildtool testAll` | Also the slow tests (re-run the legacy simulations, ~5 min) |
+| `buildtool testAll` | Also the slow tests (complete beam model) |
 | `buildtool docs` | Sphinx HTML in `docs/build/html` (needs Python and `docs/requirements.txt`) |
 | `buildtool clean` | Delete the generated files |
 
 `run_tests` (in `tests/`) is a lighter alternative that only runs the tests.
 
-Files excluded from docs/tests: backups (`*.asv`) and the scratch scripts in `sandbox/`.
+Files excluded from docs/tests: backups (`*.asv`).
 
-## Repository layout during the refactoring
-- `src/+ldem/` is the `ldem` package: the refactored code. New work goes here.
-- `legacy/` is the **frozen** original code. Do not change its numerics: the
-  regression tests compare the refactored code against it. Known problems are
-  listed in `legacy/KNOWN_ISSUES.md`.
-- `tests/fixtures/*.mat` are golden-master results produced by the legacy code.
-  Regenerate them only if the legacy code is changed on purpose:
-  `addpath('tests/tools'); generateReference`.
+## Repository layout
+- `src/+ldem/` is the `ldem` package. All the code goes here.
+- `tests/fixtures/*.mat` are golden-master results produced by the original
+  (Fortran-derived) MATLAB code, after correcting its obvious bugs. The original
+  code is not in the working tree; it is in the git history under the tag
+  `legacy-reference` (`git checkout legacy-reference`, which also contains the
+  tools that generated the fixtures). The problems found in it are listed in
+  `docs/known-issues/KNOWN_ISSUES.md`. Change a fixture only on purpose, and
+  say in the pull request why the reference result changed.
 - Slow tests (tag `Slow`) are skipped by `buildtool test` and `run_tests`; use
   `buildtool testAll` or `run_tests(IncludeSlow=true)`.

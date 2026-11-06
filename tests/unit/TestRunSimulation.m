@@ -40,6 +40,44 @@ classdef TestRunSimulation < LdemTestCase
                 'results must not hold ldem class instances.');
         end
 
+        function nodalKineticEnergyIsStoredAndAddsUpToTheTotal(testCase)
+            results = ldem.runSimulation(testCase.quickParams());
+            nNodes = size(results.mesh.nodes0, 1);
+
+            testCase.verifySize(results.final.kineticEnergy, [nNodes 1]);
+            testCase.verifyEqual(sum(results.final.kineticEnergy), results.energy.kinetic(end), 'RelTol', 1e-12);
+
+            snapshots = results.snapshots;
+            testCase.verifySize(snapshots.kineticEnergy, [5 1]);
+            testCase.verifyClass(snapshots.kineticEnergy{end}, 'single');
+            testCase.verifyEqual(double(sum(snapshots.kineticEnergy{end})), results.energy.kinetic(end), 'RelTol', 1e-5);
+            testCase.verifyEqual(sum(snapshots.kineticEnergy{1}), single(0), 'At time zero nothing moves.');
+        end
+
+        function resultsDescribeTheModelAndTheMaterial(testCase)
+            params = testCase.quickParams();
+            results = ldem.runSimulation(params);
+            m = results.model;
+            nBars = size(results.mesh.bars, 1);
+
+            testCase.verifyEqual(m.nNodes, params.nNodes);
+            testCase.verifyEqual(m.nModules, [3 2 2]);
+            testCase.verifyEqual(m.nGridEdges + m.nCentreBars + m.nDiagonals, nBars);
+            testCase.verifyEqual(m.nGridNodes + m.nCentreNodes, m.nNodes);
+            testCase.verifyEqual(m.totalMass, params.density * m.prismVolume, 'RelTol', 1e-12);
+
+            mat = results.material;
+            testCase.verifyEqual(mat.youngModulus, params.youngModulus);
+            testCase.verifyEqual(mat.alpha, 0.4, 'RelTol', 1e-12);
+            testCase.verifyEqual(mat.delta, 1.125, 'RelTol', 1e-12);
+            testCase.verifyEqual(mat.criticalStrainMean, results.barProps.criticalStrainMean);
+            testCase.verifyEqual(mat.criticalStrainCv, results.barProps.criticalStrainCv);
+            % With no random field all the strains are equal; allow for rounding of the mean.
+            testCase.verifyLessThanOrEqual(mat.criticalStrainMin, mat.criticalStrainMean * (1 + 1e-12));
+            testCase.verifyGreaterThanOrEqual(mat.criticalStrainMax, mat.criticalStrainMean * (1 - 1e-12));
+            testCase.verifyEqual(mat.ruptureRatioNormal, mat.criticalLength / params.moduleLength, 'RelTol', 1e-14);
+        end
+
         function energyPartsAddUp(testCase)
             results = ldem.runSimulation(testCase.quickParams());
             e = results.energy;
@@ -137,12 +175,12 @@ classdef TestRunSimulation < LdemTestCase
             testCase.verifyEqual(fromFile.energy.kinetic, direct.energy.kinetic);
         end
 
-        function plotEnergyDrawsFiveCurves(testCase)
+        function plotEnergyDrawsSixCurves(testCase)
             results = ldem.runSimulation(testCase.quickParams());
             fig = figure('Visible', 'off');
             testCase.addTeardown(@close, fig);
             ax = ldem.post.plotEnergy(results, axes(fig));
-            testCase.verifyEqual(numel(ax.Children), 5);
+            testCase.verifyEqual(numel(ax.Children), 6);
             testCase.verifyEqual(ax.XLabel.String, 'Time [s]');
         end
 

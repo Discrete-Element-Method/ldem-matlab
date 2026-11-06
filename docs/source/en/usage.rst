@@ -32,10 +32,24 @@ Tests available
    Uniaxial load: the centre nodes of the last column of modules move along
    :math:`x` with a prescribed velocity.
 ``testId = 102``
-   Beam with two supports and a load point (needs a beam longer than about 70
-   modules). See ``examples/beam_102``.
+   Beam with two supports and two load points. The positions are parameters of
+   ``ldem.scenarios.FourPointBending`` (``supportPosition``, ``loadPosition``,
+   in modules from each end); the defaults need a beam longer than about 70
+   modules. See ``examples/beam_102``.
 
 To add a new test, create a subclass of ``ldem.scenarios.Scenario``.
+
+Mesh perturbation
+-----------------
+
+The parameter ``meshPerturbation`` randomly displaces the interior nodes. Its
+value is the standard deviation as a fraction of the module length: ``0`` (the
+default) keeps the lattice regular and any positive value activates the
+perturbation with that value. The random numbers follow ``seed``.
+
+.. code-block:: matlab
+
+   >> params = ldem.Parameters(testId=101, nModules=[6 3 3], meshPerturbation=0.02);
 
 What you get: the ``results`` struct
 ------------------------------------
@@ -50,8 +64,16 @@ What you get: the ``results`` struct
      - ldem version, date, MATLAB release, run time [s].
    * - ``params``
      - The parameters used, as a plain struct (derived values included).
+   * - ``model``
+     - Counts and mass of the model: modules, nodes, bars by type, fixed degrees
+       of freedom, total mass and volume.
+   * - ``material``
+     - Material data (E, Gf, ...), lattice coefficients, critical length and the
+       statistics of the critical strain (mean, coefficient of variation, minimum
+       and maximum).
    * - ``mesh``
-     - Initial node positions, supports (``fixed``), masses, bars, bar lengths.
+     - Initial node positions, supports (``fixed``), masses, bars, bar lengths
+       and bar types.
    * - ``barProps``
      - Stiffness, critical strain and rupture strain of every bar.
    * - ``controlNodes``
@@ -60,14 +82,21 @@ What you get: the ``results`` struct
      - Time and reaction force of the test (beam test: vertical force).
    * - ``energy``
      - Time, kinetic, elastic, damage and damping energies [J], their sum
-       (``internal``) and the damage rate.
+       (``internal``), the external work, the ``balance`` (external minus
+       internal) and the damage rate.
    * - ``trackedBar``
      - Strain, force and damage energy of one bar at every step (optional).
    * - ``snapshots``
      - Step, time, number of intact/damaged/broken bars, and compact copies of
-       the displacements and of the damage state at the snapshot steps.
+       the displacements, the damage state and the nodal kinetic energy at the
+       snapshot steps.
    * - ``final``
-     - Final displacement, velocity, force and damage state.
+     - Final displacement, velocity, force and damage state, and the kinetic
+       energy of every node.
+
+The energy ``balance`` is a check of the simulation: it should be a small
+fraction (below 1 %) of the final external work. The total kinetic energy is
+``energy.kinetic``; the kinetic energy of each node is in ``final.kineticEnergy``.
 
 ``results.mat`` contains this struct and loads without the package:
 
@@ -83,7 +112,10 @@ Output files
    The ``results`` struct (format v7.3, readable from Python with ``h5py``).
 ``snapshot_0000.mac``, ``snapshot_0001.mac``, ...
    ANSYS macro files with the deformed lattice. Bars are element types 1
-   (intact), 2 (damaged) and 5 (broken).
+   (intact), 2 (damaged) and 5 (broken). The held degrees of freedom are
+   listed as ``D,node,direction`` and the displacement imposed on the loaded
+   nodes, measured from their initial position, as
+   ``D,node,direction,value``.
 ``snapshot_0000.vtu``, ... and ``snapshots.pvd``
    VTK files. Open ``snapshots.pvd`` in `ParaView <https://www.paraview.org>`_;
    colour by ``damageState`` (cell data) to see the cracks and use the time
@@ -99,4 +131,4 @@ Run the tests
 
    >> addpath tests
    >> run_tests                          % fast tests
-   >> run_tests(IncludeSlow=true)        % also re-runs the legacy simulations
+   >> run_tests(IncludeSlow=true)        % also the slow tests

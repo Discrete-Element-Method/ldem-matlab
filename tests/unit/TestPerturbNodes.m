@@ -54,12 +54,27 @@ classdef TestPerturbNodes < LdemTestCase
 
         function enabledThroughParametersChangesTheMesh(testCase)
             base = ldem.Parameters(nModules=testCase.Sizes);
-            perturbed = ldem.Parameters(nModules=testCase.Sizes, ...
-                meshPerturbation=struct('enabled', true, 'cv', 0.02));
+            perturbed = ldem.Parameters(nModules=testCase.Sizes, meshPerturbation=0.02);
             a = ldem.mesh.buildMesh(base);
             b = ldem.mesh.buildMesh(perturbed);
             testCase.verifyNotEqual(a.nodes0, b.nodes0);
             testCase.verifyEqual(a.bars, b.bars, 'Connectivity must not change.');
+        end
+
+        function zeroKeepsTheRegularLattice(testCase)
+            p = ldem.Parameters(nModules=testCase.Sizes, meshPerturbation=0);
+            mesh = ldem.mesh.buildMesh(p);
+            testCase.verifyEqual(mesh.nodes0, ...
+                ldem.mesh.buildNodes(testCase.Sizes, p.moduleLength));
+        end
+
+        function theValueIsTheScaleOfTheDisplacement(testCase)
+            small = ldem.mesh.buildMesh(ldem.Parameters(nModules=testCase.Sizes, meshPerturbation=0.01));
+            large = ldem.mesh.buildMesh(ldem.Parameters(nModules=testCase.Sizes, meshPerturbation=0.04));
+            regular = ldem.mesh.buildNodes(testCase.Sizes, 1);
+            regular = regular * ldem.Parameters().moduleLength;
+            testCase.verifyEqual(norm(large.nodes0 - regular), ...
+                4 * norm(small.nodes0 - regular), 'RelTol', 1e-9);
         end
     end
 end

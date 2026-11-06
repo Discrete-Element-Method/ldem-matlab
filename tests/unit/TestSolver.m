@@ -138,6 +138,39 @@ classdef TestSolver < LdemTestCase
             testCase.verifyEqual(last.displacement(2, 2:3), [0 0]);
         end
 
+        function movingSupportBalancesTheEnergy(testCase)
+            % Node 1 is held but moves with constant velocity (prescribed motion);
+            % node 2 is free. The work done at node 1 must equal the energy stored.
+            params = ldem.Parameters(dt=2e-7, dampingInitial=0, dampingFinal=0);
+            [mesh, barProps, history] = testCase.oscillator();
+            mesh.fixed(1, :) = true;
+            % The kinetic energy of a prescribed node is not supplied by the work
+            % of the bar force, so make it negligible (a real lattice has the same
+            % property: the prescribed nodes are a tiny part of the mass).
+            mesh.mass(1) = 1e-12;
+            state = ldem.solver.initialState(mesh, history);
+            velocity = 1e-3;                                  % [m/s]
+
+            nSteps = 3000;
+            for n = 1:nSteps
+                state.step = n;
+                state.time = state.time + params.dt;
+                state.displacement(1, 1) = velocity * state.time;     % prescribed
+                state = ldem.solver.computeBarForces(state, mesh, barProps, params);
+                state = ldem.solver.integrateStep(state, mesh, barProps, params);
+            end
+            e = ldem.solver.computeEnergies(state, mesh, barProps, params);
+
+            testCase.verifyGreaterThan(e.external, 0, 'Pushing the structure is positive work.');
+            testCase.verifyEqual(e.internal, e.external, 'RelTol', 5e-3);
+            testCase.verifyEqual(e.balance, e.external - e.internal);
+        end
+
+        function aSupportThatDoesNotMoveDoesNoWork(testCase)
+            [~, states, ~] = testCase.runOscillator(1000, 500);
+            testCase.verifyEqual(states{end}.externalEnergy, 0);
+        end
+
         function integrateRejectsZeroMass(testCase)
             params = ldem.Parameters();
             [mesh, barProps, history] = testCase.oscillator();

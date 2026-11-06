@@ -37,14 +37,14 @@ classdef TestSimulate < LdemTestCase
             testCase.verifyGreaterThan(min(state.displacement(loaded, 1) - mesh.nodes0(loaded, 1)), 0);
         end
 
-        function bendingLoadMovesOnlyTheRightLoadPoint(testCase)
+        function bendingLoadMovesBothLoadPoints(testCase)
             [params, mesh, ~, history, scenario] = testCase.smallModel(testId=102, nModules=[70 4 3]);
             state = ldem.solver.initialState(mesh, history);
             state.time = 1e-4;
             state = scenario.applyLoads(state, mesh, params);
 
             loaded = scenario.loadedNodes(mesh.nodes0, params);
-            testCase.verifyEqual(nnz(loaded), params.nModules(3) - 1);
+            testCase.verifyEqual(nnz(loaded), 2 * (params.nModules(3) - 1));
             testCase.verifyEqual(state.displacement(loaded, 2), ...
                 mesh.nodes0(loaded, 2) - 400e-5 * 1e-4, 'RelTol', 1e-14);
             testCase.verifyTrue(all(mesh.fixed(loaded, 2)), 'Loaded nodes must be held in y.');
@@ -191,6 +191,33 @@ classdef TestSimulate < LdemTestCase
             scenario = ldem.scenarios.FourPointBending(loadingVelocity=1e-3);
             testCase.verifyEqual(scenario.loadingVelocity, 1e-3);
             testCase.verifyEqual(ldem.scenarios.FourPointBending().loadingVelocity, 400e-5);
+        end
+
+        function energyBalanceClosesInTheBeamTest(testCase)
+            % The load acts on held degrees of freedom, so external work equals
+            % the stored plus dissipated energy.
+            params = ldem.Parameters(testId=102, nModules=[70 4 3], totalTime=6e-5, ...
+                output=struct('snapshotEvery', 0, 'controlNodesEvery', 0, ...
+                    'energyEvery', 10, 'trackedBarEvery', 0));
+            results = ldem.runSimulation(params);
+            e = results.energy;
+            testCase.verifyGreaterThan(e.external(end), 0);
+            testCase.verifyEqual(e.internal(end), e.external(end), 'RelTol', 1e-2);
+            testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
+        end
+
+        function energyBalanceClosesInTensionWithSofteningAndRupture(testCase)
+            % With softening and rupture: the dissipated energy is accounted too.
+            params = ldem.Parameters(nModules=[6 3 3], totalTime=2e-4, fractureEnergy=0.1, ...
+                output=struct('snapshotEvery', 0, 'controlNodesEvery', 0, ...
+                    'energyEvery', 10, 'trackedBarEvery', 0));
+            results = ldem.runSimulation(params);
+            e = results.energy;
+
+            testCase.verifyGreaterThan(nnz(~results.final.damage.isUndamaged), 0, 'The test needs damage.');
+            testCase.verifyGreaterThan(e.damage(end), 0);
+            testCase.verifyEqual(e.internal(end), e.external(end), 'RelTol', 1e-2);
+            testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
         end
 
         function verboseModePrintsProgress(testCase)

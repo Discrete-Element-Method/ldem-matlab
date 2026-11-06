@@ -17,7 +17,6 @@ quasi-brittle materials (concrete, rocks).
 | Path | Content |
 |------|---------|
 | `src/+ldem/` | The `ldem` package (refactored code) |
-| `legacy/` | Original LDEM routines (frozen reference used by the regression tests) |
 | `tests/` | `matlab.unittest` test suite |
 | `docs/` | Sphinx documentation (English and Spanish), API generated from the `.m` files |
 | `examples/` | How to run the example simulations |
@@ -25,7 +24,7 @@ quasi-brittle materials (concrete, rocks).
 ### Quick start
 
 ```matlab
->> setup_path          % adds src/ and legacy/ to the MATLAB path
+>> setup_path          % adds src/ to the MATLAB path
 >> run('examples/tension_101/runTension.m')   % small example, output in examples/tension_101/output
 ```
 
@@ -47,8 +46,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Comments of the new code are written in English (the original code in `legacy/`
-keeps its Portuguese comments); the guides are available in English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
+Comments are written in English (the original code is in the git history under
+the tag `legacy-reference`); the guides are available in English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
 convention.
 
 ### Citation
@@ -70,7 +69,6 @@ quase-frágeis (concreto, rochas).
 | Caminho | Conteúdo |
 |---------|----------|
 | `src/+ldem/` | O pacote `ldem` (código refatorado) |
-| `legacy/` | Rotinas LDEM originais (referência congelada usada nos testes de regressão) |
 | `tests/` | Suíte de testes com `matlab.unittest` |
 | `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
 | `examples/` | Como executar as simulações de exemplo |
@@ -78,7 +76,7 @@ quase-frágeis (concreto, rochas).
 ### Início rápido
 
 ```matlab
->> setup_path          % adiciona src/ e legacy/ ao path do MATLAB
+>> setup_path          % adiciona src/ ao path do MATLAB
 >> run('examples/tension_101/runTension.m')   % exemplo pequeno, saída em examples/tension_101/output
 ```
 
@@ -99,8 +97,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Os comentários do código novo estão em inglês (o código original em `legacy/`
-mantém os comentários em português); os guias estão em espanhol e inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
+Os comentários estão em inglês (o código original está no histórico do git, na
+tag `legacy-reference`); os guias estão em espanhol e inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
 
 ### Citação
 
@@ -121,7 +119,6 @@ cuasi-frágiles (hormigón, rocas).
 | Ruta | Contenido |
 |------|-----------|
 | `src/+ldem/` | El paquete `ldem` (código refactorizado) |
-| `legacy/` | Rutinas LDEM originales (referencia congelada usada en los tests de regresión) |
 | `tests/` | Suite de tests con `matlab.unittest` |
 | `docs/` | Documentación Sphinx (español e inglés), API generada desde los `.m` |
 | `examples/` | Cómo ejecutar las simulaciones de ejemplo |
@@ -129,7 +126,7 @@ cuasi-frágiles (hormigón, rocas).
 ### Inicio rápido
 
 ```matlab
->> setup_path          % agrega src/ y legacy/ al path de MATLAB
+>> setup_path          % agrega src/ al path de MATLAB
 >> run('examples/tension_101/runTension.m')   % ejemplo pequeño, salida en examples/tension_101/output
 ```
 
@@ -150,8 +147,8 @@ pip install -r docs/requirements.txt
 sphinx-build -b html docs/source docs/build/html
 ```
 
-Los comentarios del código nuevo están en inglés (el código original de `legacy/`
-mantiene sus comentarios en portugués); las guías están en español e inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
+Los comentarios están en inglés (el código original está en el historial de git,
+etiqueta `legacy-reference`); las guías están en español e inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
 
 ### Cita
 

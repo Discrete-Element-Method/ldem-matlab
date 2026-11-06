@@ -7,10 +7,9 @@
 - `matlab.unittest` test suite and GitHub Actions workflows.
 - Golden-master regression infrastructure (`tests/tools`, `tests/fixtures`,
   `tests/regression`): three small reference simulations generated from the
-  legacy code, plus a slow test that checks the legacy code still reproduces
-  them (`run_tests(IncludeSlow=true)`).
-- `legacy/KNOWN_ISSUES.md`: bugs found in the original code and how the
-  refactored code will resolve each one.
+  original code.
+- `docs/known-issues/KNOWN_ISSUES.md` (and `.es.md`): bugs found in the original
+  code and how each one was resolved.
 
 - New package `src/+ldem` (refactoring in progress), validated against the
   legacy fixtures: `ldem.Parameters` (validated input), `ldem.io.readInputFile`,
@@ -41,26 +40,50 @@
   Coverage of the `ldem` package is 99.9 %.
 - CI: `tests` runs `check` and `test` on R2023b and keeps the reports; `tests-all`
   (manual) also runs the slow tests; `docs` builds Sphinx with warnings as errors.
+- External work and energy balance: `energy.external` is the work done on the degrees
+  of freedom held by the scenario and `energy.balance = external - internal`
+  (0.01-0.5 % of the external work in the reference tests, also with softening
+  and rupture).
+- Kinetic energy of every node (`ldem.solver.nodalKineticEnergy`, stored in
+  `results.final` and in the snapshots) besides the total of the model.
+- `results.model` and `results.material`: counts, mass, material data, lattice
+  coefficients and statistics of the critical strain (what `WRICON` printed).
+- `FourPointBending(supportPosition=, loadPosition=)`: the positions of the beam
+  test are parameters (the legacy values are the defaults); an error is raised when
+  a position matches no node.
+- Spanish translation of the known issues: `docs/known-issues/KNOWN_ISSUES.es.md`.
+- ANSYS files list the displacement imposed on the loaded nodes
+  (`D,node,direction,value`) in the applied-loads section.
+- `Parameters.meshPerturbation`: one number that switches the mesh perturbation
+  off (`0`, the default) or on with that coefficient of variation (`> 0`).
 - Unit tests (`tests/unit`) and a regression test that compares the new mesh
   with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
 
 ### Changed
-- Original routines moved from `src/ldem` to `legacy/` (frozen reference).
-- Experimental scripts moved to `sandbox/`; example inputs to `examples/beam_102/`.
+- Example inputs moved to `examples/beam_102/`.
 - `.gitignore` now targets MATLAB and LDEM output files.
 - `run_tests` searches subfolders and skips tests tagged `Slow` by default.
-- `setup_path` adds both `src/` and `legacy/`; the generated API documentation
-  now covers the `ldem` package only.
+- The generated API documentation covers the `ldem` package only.
 
-### Fixed
+### Fixed in the original code (kept in the git tag `legacy-reference`)
 - `legacy/main1.m`: removed scratch lines; fixed the end-of-run file closing
   (undefined `fid12/fid15/fid19/fid20`) and the ANSYS output call.
-- `legacy/BOUND.m`: `TEST 101` failed because `ini` was not assigned.
+- `legacy/BOUND.m`: `TEST 101` failed because `ini` was not assigned, and its
+  right-end support had a misplaced parenthesis (the loaded nodes were not held,
+  so the tension test did not conserve energy).
+- `legacy/CALOAD.m`: the second load point of the beam test was never loaded.
+- `legacy/IGN012.m`: the acceleration in y used a wrong index.
 - `legacy/IGN012.m`: the time integration was never executed (the nested function
   `ign012` was not called), so free nodes never moved. Fixed; the golden-master
   fixtures were regenerated and the damage case re-tuned (1000 steps, Gf = 0.1).
 
 ### Removed
+- The original routines (`legacy/`) and the scratch scripts (`sandbox/`), with the
+  tools and tests that ran them (`generateReference`, `runLegacyCase`,
+  `TestLegacyReproducibility`, `TestLdemPath`). They remain in the git history
+  under the tag `legacy-reference`; the reference results they produced are kept
+  in `tests/fixtures/`.
+- `examples/beam_102/LET.AN1`, which only the original driver read.
 - Duplicate files (`* - Copia.m`, `Copy_of_*`), empty `initialization_DEM`, and
   generated output files that were tracked by mistake (`LET.*`, `*.TXT`,
   `SIM01.DAT`, `BARR_ROMP.dat`).

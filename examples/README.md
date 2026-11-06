@@ -23,9 +23,5 @@ Outputs are written to an `output/` folder next to the script (ignored by git):
 
 | File | Purpose |
 |------|---------|
-| `DATA0.DAT` | Simulation parameters (legacy format, read by `ldem.Parameters.fromFile`) |
-| `LET.AN1` | Names of the ANSYS files of the legacy driver (not needed by the new code) |
+| `DATA0.DAT` | Simulation parameters (format of the original program, read by `ldem.Parameters.fromFile`) |
 | `arquivo_3lc_rnao_cv05` | Random field applied to the critical strain of each bar (11 MB) |
-
-The legacy driver (`legacy/main1.m`) reads its files from the current folder
-and writes its outputs there too, so run it from a scratch copy.

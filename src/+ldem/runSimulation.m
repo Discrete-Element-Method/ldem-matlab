@@ -32,6 +32,8 @@ function results = runSimulation(params, options)
 %
 %     info          Version of ldem, date, MATLAB release, run time.
 %     params        Input parameters (plain struct, derived values included).
+%     model         Counts and mass of the model (ldem.mesh.summarizeModel).
+%     material      Material data and statistics (ldem.material.summarizeMaterial).
 %     mesh          Nodes, supports, masses, bars and bar geometry.
 %     barProps      Constant properties of the bars.
 %     controlNodes  Motion of the control nodes versus time.
@@ -39,7 +41,7 @@ function results = runSimulation(params, options)
 %     energy        Energies versus time.
 %     trackedBar    History of the bar params.trackedBar (may be empty).
 %     snapshots     Compact copies of the state at the snapshot steps.
-%     final         Final state of nodes and bars.
+%     final         Final state of nodes and bars, with the kinetic energy of each node.
 %
 %   The fields of each part are described in ldem.solver.simulate,
 %   ldem.mesh.buildMesh, ldem.material.buildBarProperties and
@@ -104,6 +106,8 @@ results.info = struct( ...
     'matlabRelease',  string(version('-release')), ...
     'elapsedSeconds', toc(timer));
 results.params       = params.toStruct();
+results.model        = ldem.mesh.summarizeModel(mesh, params);
+results.material     = ldem.material.summarizeMaterial(barProps, params);
 results.mesh         = mesh;
 results.barProps     = barProps;
 results.controlNodes = record.controlNodes;
@@ -111,7 +115,7 @@ results.reactions    = record.reactions;
 results.energy       = record.energy;
 results.trackedBar   = record.trackedBar;
 results.snapshots    = writer.finish();
-results.final        = finalState(state);
+results.final        = finalState(state, mesh);
 
 if writeFiles && any(options.Formats == "mat")
     ldem.io.saveResults(fullfile(options.OutputFolder, "results.mat"), results);
@@ -121,7 +125,7 @@ if options.Verbose
 end
 end
 
-function final = finalState(state)
+function final = finalState(state, mesh)
 %FINALSTATE  Fields of the solver state worth keeping after the run.
 final = struct( ...
     'step',         state.step, ...
@@ -129,6 +133,7 @@ final = struct( ...
     'displacement', state.displacement, ...
     'velocity',     state.velocity, ...
     'acceleration', state.acceleration, ...
+    'kineticEnergy', ldem.solver.nodalKineticEnergy(state, mesh), ...
     'force',        state.force, ...
     'strain',       state.strain, ...
     'axialForce',   state.axialForce, ...

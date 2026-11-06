@@ -1,9 +1,8 @@
 function setup_path()
 %SETUP_PATH  Add the LDEM code to the MATLAB path.
 %
-%   setup_path() adds to the MATLAB path, for the current session:
-%     src/     the refactored package, used as ldem.<function>
-%     legacy/  the frozen original routines (reference implementation)
+%   setup_path() adds src/ to the MATLAB path for the current session, so
+%   the package can be used as ldem.<function>.
 %
 %   Example:
 %       >> setup_path
@@ -13,5 +12,4 @@ function setup_path()
 
 root = fileparts(mfilename('fullpath'));
 addpath(fullfile(root, 'src'));
-addpath(fullfile(root, 'legacy'));
 end

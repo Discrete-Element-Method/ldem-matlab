@@ -6,7 +6,7 @@ function plan = buildfile
 %       >> buildtool                 % default: check + test
 %       >> buildtool check           % static analysis (Code Analyzer)
 %       >> buildtool test            % fast tests, with coverage and JUnit report
-%       >> buildtool testAll         % also the slow tests (re-run the legacy code)
+%       >> buildtool testAll         % also the slow tests (full beam model)
 %       >> buildtool docs            % Sphinx documentation (needs Python)
 %       >> buildtool clean           % remove generated files
 %       >> buildtool -tasks          % list the tasks
@@ -17,8 +17,8 @@ function plan = buildfile
 %     test     Runs every test not tagged "Slow", writes
 %              test-results/results.xml (JUnit) and code-coverage/coverage.xml
 %              (Cobertura) and prints the coverage of the ldem package.
-%     testAll  Same as test but including the slow tests, which start child
-%              MATLAB processes (about 5 minutes).
+%     testAll  Same as test but including the slow tests (they build the
+%              complete beam model of the example, about 167,000 nodes).
 %     docs     Builds the HTML documentation in docs/build/html.
 %     clean    Deletes test-results/, code-coverage/ and docs/build/.
 %
@@ -86,10 +86,10 @@ import matlab.unittest.selectors.HasTag
 
 root = context.Plan.RootFolder;
 
-% Source code, tests and legacy reference on the path for this run.
+% Source code and tests on the path for this run.
 originalPath = path;
 restorePath = onCleanup(@() path(originalPath));
-addpath(fullfile(root, 'src'), fullfile(root, 'tests'), fullfile(root, 'legacy'));
+addpath(fullfile(root, 'src'), fullfile(root, 'tests'));
 
 resultsFolder = fullfile(root, 'test-results');
 coverageFolder = fullfile(root, 'code-coverage');

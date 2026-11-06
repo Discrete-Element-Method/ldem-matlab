@@ -10,7 +10,7 @@ classdef TestMaterialAgainstLegacy < LdemTestCase
     %   end of the legacy run is still the initial one and it is compared
     %   too.
     %
-    %   See also TestMeshAgainstLegacy, generateReference.
+    %   See also TestMeshAgainstLegacy.
 
     properties (TestParameter)
         caseName = {'tension101_elastic', 'tension101_damage', 'bending102'}
