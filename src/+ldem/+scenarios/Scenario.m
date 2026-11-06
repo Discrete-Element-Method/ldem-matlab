@@ -10,7 +10,9 @@ classdef (Abstract) Scenario
     %     1. Set the constant property testId to a new number.
     %     2. Implement fixedDofs and applyLoads.
     %     3. Optionally override reactions.
-    %     4. Register the class in ldem.scenarios.fromTestId.
+    %     4. Register the class in ldem.scenarios.registry (one line with its
+    %        name for the case files, its test number and the units of the
+    %        properties that a case file may set).
     %
     %   See also ldem.scenarios.UniaxialTension,
     %   ldem.scenarios.FourPointBending, ldem.scenarios.ClampedBeam,

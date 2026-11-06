@@ -8,7 +8,7 @@ function scenario = fromTestId(testId)
 %       102  ldem.scenarios.FourPointBending
 %       103  ldem.scenarios.ClampedBeam
 %
-%   To register a new scenario, add a line to the list inside this file.
+%   To register a new scenario, add a line to ldem.scenarios.registry.
 %
 %   Input:
 %     testId  Test number (Parameters.testId).
@@ -19,24 +19,18 @@ function scenario = fromTestId(testId)
 %   Errors:
 %     ldem:scenarios:unknownTest  No scenario has that number.
 %
-%   See also ldem.scenarios.Scenario.
+%   See also ldem.scenarios.Scenario, ldem.scenarios.registry.
 
 arguments
     testId (1,1) double
 end
 
-registered = {ldem.scenarios.UniaxialTension(), ldem.scenarios.FourPointBending(), ...
-              ldem.scenarios.ClampedBeam()};
-
-for k = 1:numel(registered)
-    if registered{k}.testId == testId
-        scenario = registered{k};
-        return
-    end
+reg = ldem.scenarios.registry();
+k = find([reg.testId] == testId, 1);
+if isempty(k)
+    error('ldem:scenarios:unknownTest', ...
+        'There is no scenario for testId = %g. Available: %s.', ...
+        testId, strjoin(string([reg.testId]), ', '));
 end
-
-known = cellfun(@(s) s.testId, registered);
-error('ldem:scenarios:unknownTest', ...
-    'There is no scenario for testId = %g. Available: %s.', ...
-    testId, strjoin(string(known), ', '));
+scenario = feval(reg(k).className);
 end

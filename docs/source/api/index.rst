@@ -19,6 +19,8 @@ Running a simulation / Ejecutar una simulación
 .. mat:autofunction:: ldem.runSimulation
 .. mat:autoclass:: ldem.Parameters
    :members:
+.. mat:autofunction:: ldem.run
+.. mat:autofunction:: ldem.check
 .. mat:autofunction:: ldem.version
 
 Input and output / Entrada y salida
@@ -26,6 +28,12 @@ Input and output / Entrada y salida
 
 .. mat:module:: ldem.io
 
+.. mat:autofunction:: ldem.io.readCase
+.. mat:autofunction:: ldem.io.writeCase
+.. mat:autofunction:: ldem.io.writeTemplate
+.. mat:autofunction:: ldem.io.convertLegacyInput
+.. mat:autofunction:: ldem.io.parseCaseText
+.. mat:autofunction:: ldem.io.parseCaseJson
 .. mat:autofunction:: ldem.io.readInputFile
 .. mat:autofunction:: ldem.io.readRandomField
 .. mat:autofunction:: ldem.io.saveResults
@@ -70,6 +78,21 @@ Scenarios / Escenarios de ensayo
 .. mat:autoclass:: ldem.scenarios.FourPointBending
 .. mat:autoclass:: ldem.scenarios.ClampedBeam
 .. mat:autofunction:: ldem.scenarios.fromTestId
+.. mat:autofunction:: ldem.scenarios.fromName
+.. mat:autofunction:: ldem.scenarios.registry
+
+Case-file schema / Esquema de los archivos de caso
+--------------------------------------------------
+
+.. mat:module:: ldem.schema
+
+.. mat:autofunction:: ldem.schema.caseSchema
+.. mat:autofunction:: ldem.schema.parseQuantity
+.. mat:autofunction:: ldem.schema.formatQuantity
+.. mat:autofunction:: ldem.schema.unitTable
+.. mat:autofunction:: ldem.schema.shortestText
+.. mat:autofunction:: ldem.schema.suggest
+.. mat:autofunction:: ldem.schema.raise
 
 Solver
 ------

@@ -20,6 +20,8 @@ classdef (Abstract) LdemTestCase < matlab.unittest.TestCase
             testCase.RepoRoot = string(fileparts(here));
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture( ...
                 fullfile(testCase.RepoRoot, 'src')));
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture( ...
+                fullfile(testCase.RepoRoot, 'tests', 'tools')));
         end
     end
 end

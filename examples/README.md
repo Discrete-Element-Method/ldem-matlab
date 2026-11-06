@@ -20,10 +20,23 @@ Outputs are written to an `output/` folder next to the script (ignored by git):
 - `snapshot_0000.vtu`, ... and `snapshots.pvd` - open `snapshots.pvd` in
   [ParaView](https://www.paraview.org/) to see the damage evolve in time.
 
+## Case files
+
+Each beam example has a `case.ldem` next to its `DATA0.DAT`: the same model in
+the readable case-file format (named keys, units, comments, the scenario and
+the output files in one place; see the user guide). It is generated from the
+`DATA0.DAT` and gives the same parameters.
+
+```matlab
+>> ldem.check('examples/example1_clamped_beam/case.ldem')    % what would be simulated
+>> results = ldem.run('examples/example1_clamped_beam/case.ldem');
+```
+
 ## beam_102 input files
 
 | File | Purpose |
 |------|---------|
+| `case.ldem` | The same parameters as a case file (`ldem.io.readCase`, `ldem.run`) |
 | `DATA0.DAT` | Simulation parameters (format of the original program, read by `ldem.Parameters.fromFile`) |
 | `arquivo_3lc_rnao_cv05` | Random field applied to the critical strain of each bar (11 MB) |
 
@@ -35,6 +48,7 @@ mid-span with a force, by Rodrigo (branch `dev_rodrigo`). It runs the 8000 steps
 
 | File | Purpose |
 |------|---------|
+| `case.ldem` | The same model as a case file (run it with `ldem.run`) |
 | `runClampedBeam.m` | Reads `DATA0.DAT`, runs the simulation, plots the force on the clamped ends, the vertical displacement of the control nodes and the energies |
 | `DATA0.DAT` | Parameters of the model (`TEST 103`, see `ldem.scenarios.ClampedBeam`) |
 

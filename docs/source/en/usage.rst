@@ -25,6 +25,108 @@ To use an input file in the format of the original program:
 
    >> params = ldem.Parameters.fromFile("DATA0.DAT");
 
+Case files (``.ldem``)
+----------------------
+
+A *case file* describes the whole model in one readable text file: named keys
+instead of positions, units next to the numbers, comments, and the test, the
+random scatter and the output files together. It replaces ``DATA0.DAT``.
+
+.. code-block:: text
+
+   format = 1
+   title  = "Small tension test"
+
+   [mesh]
+   module_size = 3 mm
+   modules     = [5, 2, 2]        # cubic modules along x, y and z
+
+   [material]
+   young_modulus = 32 GPa
+   density       = 2000 kg/m3
+
+   [time]
+   step     = auto                # 0.9 times the critical step
+   duration = 40 us
+
+   [scenario]
+   type = "uniaxial_tension"
+
+   [output]
+   folder = "output"
+
+.. code-block:: matlab
+
+   >> ldem.io.writeTemplate("my_test.ldem", "clamped_beam");  % a commented file to edit
+   >> ldem.check("my_test.ldem")                              % validate and report, no simulation
+   >> results = ldem.run("my_test.ldem");                     % run it
+   >> ldem.io.convertLegacyInput("DATA0.DAT", "case.ldem");   % convert an old input file
+
+Rules of the format:
+
+* Keys are read by **name**; the order of the lines does not matter. Keys that
+  are missing take the default of ``ldem.Parameters``. Only ``scenario.type``,
+  ``mesh.modules`` and ``time.duration`` are required.
+* A number may carry a **unit**: ``3.87 GPa``, ``0.35 us``, ``1500 kg/m3``,
+  ``2 kN/s``. Without a unit the value is in SI. The wrong unit for the key is
+  an error that lists the valid ones.
+* ``#`` starts a comment, ``[section]`` opens a table, ``[[monitor.node]]``
+  starts the next element of a repeated table, lists are written ``[5, 5, 50]``.
+* ``mesh.modules`` counts **modules**: the ``M N L`` of ``DATA0.DAT`` count
+  nodes, one more.
+* ``time.step = auto`` (or no ``step``) takes 0.9 times the critical step.
+* Every error names the file, the line, the section and the key, and suggests
+  the closest valid name for a mistyped one.
+* Relative paths (the random-field file, the output folder) are relative to
+  the case file.
+* A JSON file with the same structure (values with units as strings) is also
+  read.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Section
+     - Keys
+   * - (top)
+     - ``format`` (1), ``title``, ``authors``
+   * - ``[mesh]``
+     - ``module_size``, ``modules``, ``perturbation`` (random displacement of
+       the nodes, fraction of the module), ``seed`` (of the perturbation)
+   * - ``[material]``
+     - ``law``, ``young_modulus``, ``poisson_ratio``, ``density``,
+       ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
+   * - ``[material.scatter]``
+     - Scatter of the critical strain of the bars. ``type = "none"``;
+       ``"file"`` with ``file`` (one multiplier per bar); or ``"generated"``
+       with ``cv``, ``correlation_length`` (in modules) and ``seed`` (the
+       field is computed in memory)
+   * - ``[time]``
+     - ``step`` (or ``auto``), ``duration``
+   * - ``[damping]``
+     - ``type``, ``initial``, ``final``, ``switch_time``, ``constitutive``
+   * - ``[scenario]``
+     - ``type`` (``uniaxial_tension``, ``four_point_bending`` or
+       ``clamped_beam``) and the properties of that scenario in snake_case,
+       for example ``force_rate``, ``ramp_time``, ``load_position`` (``"midspan"``
+       is allowed)
+   * - ``[[monitor.node]]``
+     - One element per control node: ``id`` (node number) or ``at = [x, y, z]``
+       (position in modules, the nearest node is used), and ``name``
+   * - ``[monitor.bar]``
+     - ``tracked``: bar whose strain history is stored at every step
+   * - ``[output]``
+     - ``folder``, ``mat``, ``ansys``, ``vtk`` (true or false)
+   * - ``[output.snapshots]``, ``[output.control_nodes]``, ``[output.energy]``
+     - ``every``: ``1000 steps`` or a time such as ``0.1 ms`` (converted to
+       steps); ``0`` means never
+
+``ldem.io.readCase`` returns the parameters, the scenario and the output
+options; ``ldem.Parameters.fromFile`` also accepts a case file. The list of
+keys lives in one table, ``ldem.schema.caseSchema``, which drives the reader,
+the writer and the template. To add a scenario, add a line to
+``ldem.scenarios.registry``.
+
 Tests available
 ---------------
 

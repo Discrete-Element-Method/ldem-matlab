@@ -25,6 +25,110 @@ Per usare un file di ingresso nel formato del programma originale:
 
    >> params = ldem.Parameters.fromFile("DATA0.DAT");
 
+File di caso (``.ldem``)
+------------------------
+
+Un *file di caso* descrive l'intero modello in un unico testo leggibile: chiavi
+con nome invece di posizioni, unità accanto ai numeri, commenti, e la prova, la
+dispersione casuale e i file di uscita insieme. Sostituisce ``DATA0.DAT``.
+
+.. code-block:: text
+
+   format = 1
+   title  = "Piccola prova di trazione"
+
+   [mesh]
+   module_size = 3 mm
+   modules     = [5, 2, 2]        # moduli cubici lungo x, y e z
+
+   [material]
+   young_modulus = 32 GPa
+   density       = 2000 kg/m3
+
+   [time]
+   step     = auto                # 0.9 volte il passo critico
+   duration = 40 us
+
+   [scenario]
+   type = "uniaxial_tension"
+
+   [output]
+   folder = "output"
+
+.. code-block:: matlab
+
+   >> ldem.io.writeTemplate("mia_prova.ldem", "clamped_beam");  % file commentato da modificare
+   >> ldem.check("mia_prova.ldem")                              % valida e riferisce, senza simulare
+   >> results = ldem.run("mia_prova.ldem");                     % la esegue
+   >> ldem.io.convertLegacyInput("DATA0.DAT", "caso.ldem");     % converte un vecchio file
+
+Regole del formato:
+
+* Le chiavi si leggono per **nome**; l'ordine delle righe non conta. Le chiavi
+  assenti prendono il valore predefinito di ``ldem.Parameters``. Sono
+  obbligatorie solo ``scenario.type``, ``mesh.modules`` e ``time.duration``.
+* Un numero può avere un'**unità**: ``3.87 GPa``, ``0.35 us``, ``1500 kg/m3``,
+  ``2 kN/s``. Senza unità il valore è in SI. Un'unità sbagliata per la chiave è
+  un errore che elenca quelle valide.
+* ``#`` inizia un commento, ``[sezione]`` apre una tabella, ``[[monitor.node]]``
+  inizia l'elemento successivo di una tabella ripetuta e le liste si scrivono
+  ``[5, 5, 50]``.
+* ``mesh.modules`` conta **moduli**: gli ``M N L`` di ``DATA0.DAT`` contano nodi,
+  uno in più.
+* ``time.step = auto`` (o senza ``step``) prende 0.9 volte il passo critico.
+* Ogni errore indica il file, la riga, la sezione e la chiave, e suggerisce il
+  nome valido più vicino se c'è un errore di battitura.
+* I percorsi relativi (file del campo casuale, cartella di uscita) sono
+  relativi al file di caso.
+* Si legge anche un file JSON con la stessa struttura (i valori con unità come
+  testo).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Sezione
+     - Chiavi
+   * - (inizio)
+     - ``format`` (1), ``title``, ``authors``
+   * - ``[mesh]``
+     - ``module_size``, ``modules``, ``perturbation`` (spostamento casuale dei
+       nodi, frazione del modulo), ``seed`` (della perturbazione)
+   * - ``[material]``
+     - ``law``, ``young_modulus``, ``poisson_ratio``, ``density``,
+       ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
+   * - ``[material.scatter]``
+     - Dispersione della deformazione critica delle barre. ``type = "none"``;
+       ``"file"`` con ``file`` (un moltiplicatore per barra); oppure
+       ``"generated"`` con ``cv``, ``correlation_length`` (in moduli) e ``seed``
+       (il campo è calcolato in memoria)
+   * - ``[time]``
+     - ``step`` (o ``auto``), ``duration``
+   * - ``[damping]``
+     - ``type``, ``initial``, ``final``, ``switch_time``, ``constitutive``
+   * - ``[scenario]``
+     - ``type`` (``uniaxial_tension``, ``four_point_bending`` o
+       ``clamped_beam``) e le proprietà di quello scenario in snake_case, per
+       esempio ``force_rate``, ``ramp_time``, ``load_position`` (è ammesso
+       ``"midspan"``)
+   * - ``[[monitor.node]]``
+     - Un elemento per nodo di controllo: ``id`` (numero del nodo) oppure
+       ``at = [x, y, z]`` (posizione in moduli, si usa il nodo più vicino), e
+       ``name``
+   * - ``[monitor.bar]``
+     - ``tracked``: barra la cui storia di deformazione è salvata a ogni passo
+   * - ``[output]``
+     - ``folder``, ``mat``, ``ansys``, ``vtk`` (true o false)
+   * - ``[output.snapshots]``, ``[output.control_nodes]``, ``[output.energy]``
+     - ``every``: ``1000 steps`` o un tempo come ``0.1 ms`` (convertito in
+       passi); ``0`` significa mai
+
+``ldem.io.readCase`` restituisce i parametri, lo scenario e le opzioni di
+uscita; ``ldem.Parameters.fromFile`` accetta anche un file di caso. L'elenco
+delle chiavi è in un'unica tabella, ``ldem.schema.caseSchema``, che governa il
+lettore, lo scrittore e il modello. Per aggiungere uno scenario si aggiunge una
+riga a ``ldem.scenarios.registry``.
+
 Prove disponibili
 -----------------
 

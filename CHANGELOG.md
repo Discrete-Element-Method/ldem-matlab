@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 ### Added
+- Case files (`.ldem`): a readable, commented input file that replaces
+  `DATA0.DAT` and describes the whole model (mesh, material, random scatter,
+  time, damping, scenario, control nodes, output). Keys are read by name, numbers
+  carry units (`3.87 GPa`, `0.35 us`), `time.step = auto` takes 0.9 times the
+  critical step, output cadence can be given in steps or in time, control nodes
+  can be given by position, and every error names the file, line, section and key
+  (with "did you mean ...?"). JSON with the same structure is also read.
+  `ldem.io.readCase`, `ldem.io.writeCase`, `ldem.io.writeTemplate`,
+  `ldem.io.convertLegacyInput` (DATA0.DAT to `.ldem`, same `Parameters`),
+  `ldem.run`, `ldem.check` (dry run: size of the model, stability margin, random
+  field file, snapshot memory), and `ldem.Parameters.fromFile` reads `.ldem` and
+  `.json` too. The keys live in one table, `ldem.schema.caseSchema`, with
+  `ldem.schema.parseQuantity` / `formatQuantity` for the units.
+- `ldem.scenarios.registry` is the single list of scenarios;
+  `ldem.scenarios.fromTestId` reads it and `ldem.scenarios.fromName` is new.
+- `case.ldem` next to the `DATA0.DAT` of `examples/beam_102` and
+  `examples/example1_clamped_beam`; user guide (EN/ES/IT/PT) and API pages.
 - Repository structure: README, LICENSE, CITATION, CONTRIBUTING.
 - Sphinx documentation (English/Spanish) with API generated from `.m` files.
 - `matlab.unittest` test suite and GitHub Actions workflows.

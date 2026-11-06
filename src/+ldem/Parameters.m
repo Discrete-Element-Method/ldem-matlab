@@ -281,19 +281,32 @@ classdef Parameters
 
     methods (Static)
         function obj = fromFile(path, overrides)
-            %FROMFILE  Read the legacy input file (DATA0.DAT format).
+            %FROMFILE  Read an input file: a case file or the legacy DATA0.DAT.
             %
             %   p = ldem.Parameters.fromFile(path) reads the file and
-            %   returns a validated parameter set.
+            %   returns a validated parameter set. A path ending in .ldem or
+            %   .json is a case file (see ldem.io.readCase, which also gives
+            %   the scenario and the output options); any other file is read
+            %   in the legacy DATA0.DAT format.
             %
             %   p = ldem.Parameters.fromFile(path, Name=Value) additionally
             %   overrides properties that are not stored in the file, for
             %   example randomFieldFile or trackedBar.
             %
-            %   See also ldem.io.readInputFile.
+            %   See also ldem.io.readCase, ldem.io.readInputFile.
             arguments
                 path (1,1) string
                 overrides.?ldem.Parameters
+            end
+            [~, ~, extension] = fileparts(path);
+            if any(lower(extension) == [".ldem" ".json"])
+                obj = ldem.io.readCase(path).params;
+                names = fieldnames(overrides);
+                for k = 1:numel(names)
+                    obj.(names{k}) = overrides.(names{k});
+                end
+                obj.validate();
+                return
             end
             fromFile = ldem.io.readInputFile(path);
             names = fieldnames(overrides);
