@@ -7,4 +7,7 @@ User guide
    introduction
    installation
    usage
+   model
    contributing
+   docs
+   authors

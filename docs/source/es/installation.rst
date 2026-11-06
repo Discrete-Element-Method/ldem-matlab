@@ -34,9 +34,4 @@ repositorio):
 ``buildtool test`` escribe ``test-results/results.xml`` (JUnit) y
 ``code-coverage/coverage.xml`` (Cobertura).
 
-Para construir esta documentación sin MATLAB:
-
-.. code-block:: bash
-
-   pip install -r docs/requirements.txt
-   sphinx-build -b html docs/source docs/build/html
+Para construir esta documentación sin MATLAB ver :doc:`docs`.

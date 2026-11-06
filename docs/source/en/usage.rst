@@ -84,11 +84,12 @@ What you get: the ``results`` struct
    * - ``controlNodes``
      - Time and displacement, velocity and acceleration of the control nodes.
    * - ``reactions``
-     - Time and reaction force of the test (beam test: vertical force).
+     - Time and reaction force ``[Rx Ry Rz]`` of the test: vertical force at the load points
+       (test 102), force on the clamped ends (test 103); ``NaN`` where the test defines none.
    * - ``energy``
      - Time, kinetic, elastic, damage and damping energies [J], their sum
-       (``internal``), the external work, the ``balance`` (external minus
-       internal) and the damage rate.
+       (``internal``), the energy of the broken bars (``brokenBars``), the external work,
+       the ``balance`` (external minus internal) and the damage rate.
    * - ``trackedBar``
      - Strain, force and damage energy of one bar at every step (optional).
    * - ``snapshots``
@@ -120,7 +121,8 @@ Output files
    (intact), 2 (damaged) and 5 (broken). The held degrees of freedom are
    listed as ``D,node,direction`` and the displacement imposed on the loaded
    nodes, measured from their initial position, as
-   ``D,node,direction,value``.
+   ``D,node,direction,value``. In test 103 the applied forces are listed as
+   ``F,node,direction,value``.
 ``snapshot_0000.vtu``, ... and ``snapshots.pvd``
    VTK files. Open ``snapshots.pvd`` in `ParaView <https://www.paraview.org>`_;
    colour by ``damageState`` (cell data) to see the cracks and use the time

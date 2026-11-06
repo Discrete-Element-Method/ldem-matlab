@@ -65,6 +65,12 @@
   off (`0`, the default) or on with that coefficient of variation (`> 0`).
 - Unit tests (`tests/unit`) and a regression test that compares the new mesh
   with the legacy one (`tests/regression/TestMeshAgainstLegacy`).
+- `ldem.io.exportAnsys` writes the applied forces (`F,node,FX|FY|FZ,value`) of force-controlled
+  scenarios (test 103); before, the ANSYS files of that test had no load.
+- Documentation brought in line with the code: the introductions (EN/ES) describe the `ldem` package
+  instead of the legacy routines, `Parameters.testId` and `Scenario` mention test 103, the results tables
+  include `brokenBars` and the reaction of test 103, and the Portuguese and Spanish READMEs translate the
+  `buildtool` comments.
 
 ### Changed
 - Example inputs moved to `examples/beam_102/`.

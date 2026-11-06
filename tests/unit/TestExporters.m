@@ -94,6 +94,24 @@ classdef TestExporters < LdemTestCase
             testCase.verifyFalse(any(startsWith(lines, "D,") & count(lines, ",") == 3));
         end
 
+        function ansysListsTheAppliedForces(testCase)
+            path = fullfile(testCase.tempFolder(), "forces.mac");
+            state = testCase.State;
+            state.appliedForce = zeros(size(state.displacement));
+            state.appliedForce([2 5], 2) = [3.5; -1];
+            ldem.io.exportAnsys(path, testCase.Mesh, state);
+            lines = splitlines(string(fileread(path)));
+            testCase.verifyEqual(lines(startsWith(lines, "F,")), ["F,2,FY,3.5"; "F,5,FY,-1"]);
+        end
+
+        function ansysHasNoForceSectionWithoutAppliedForces(testCase)
+            path = fullfile(testCase.tempFolder(), "noforces.mac");
+            ldem.io.exportAnsys(path, testCase.Mesh, testCase.State);
+            lines = splitlines(string(fileread(path)));
+            testCase.verifyFalse(any(startsWith(lines, "F,")));
+            testCase.verifyFalse(any(contains(lines, "FORCAS")));
+        end
+
         function ansysCoordinatesAreTheCurrentPositions(testCase)
             path = fullfile(testCase.tempFolder(), "state.mac");
             ldem.io.exportAnsys(path, testCase.Mesh, testCase.State);

@@ -33,9 +33,4 @@ Developer tasks (``buildtool`` is run from the repository root):
 ``buildtool test`` writes ``test-results/results.xml`` (JUnit) and
 ``code-coverage/coverage.xml`` (Cobertura).
 
-To build this documentation without MATLAB:
-
-.. code-block:: bash
-
-   pip install -r docs/requirements.txt
-   sphinx-build -b html docs/source docs/build/html
+To build this documentation without MATLAB see :doc:`docs`.

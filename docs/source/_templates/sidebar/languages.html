@@ -1,0 +1,17 @@
+{#- Language switcher: the same page in the other languages. -#}
+{%- set langs = [('en', 'English'), ('es', 'Español'), ('pt', 'Português'), ('it', 'Italiano')] -%}
+{%- set parts = pagename.split('/') -%}
+{%- if parts|length > 1 and parts[0] in ['en', 'es', 'pt', 'it'] %}
+<div class="sidebar-tree" style="padding: 0 var(--sidebar-item-spacing-horizontal);">
+  <p class="caption" role="heading"><span class="caption-text">Language / Idioma / Língua / Lingua</span></p>
+  <ul>
+  {%- for code, name in langs %}
+    {%- set target = code ~ '/' ~ parts[1:]|join('/') %}
+    <li{% if code == parts[0] %} class="current"{% endif %}>
+      {%- if code == parts[0] %}<strong>{{ name }}</strong>
+      {%- else %}<a href="{{ pathto(target) }}">{{ name }}</a>{% endif %}
+    </li>
+  {%- endfor %}
+  </ul>
+</div>
+{%- endif %}

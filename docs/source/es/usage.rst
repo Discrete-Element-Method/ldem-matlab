@@ -85,11 +85,13 @@ Qué se obtiene: la estructura ``results``
    * - ``controlNodes``
      - Tiempo y desplazamiento, velocidad y aceleración de los nodos de control.
    * - ``reactions``
-     - Tiempo y fuerza de reacción del ensayo (viga: fuerza vertical).
+     - Tiempo y fuerza de reacción ``[Rx Ry Rz]`` del ensayo: fuerza vertical en los puntos
+       de carga (ensayo 102), fuerza en los extremos empotrados (ensayo 103); ``NaN``
+       donde el ensayo no la define.
    * - ``energy``
      - Tiempo, energías cinética, elástica, de daño y de amortiguamiento [J],
-       su suma (``internal``), el trabajo externo, el balance (``balance``,
-       externo menos interno) y la tasa de daño.
+       su suma (``internal``), la energía de las barras rotas (``brokenBars``), el trabajo
+       externo, el balance (``balance``, externo menos interno) y la tasa de daño.
    * - ``trackedBar``
      - Deformación, fuerza y energía de daño de una barra en cada paso
        (opcional).
@@ -122,7 +124,8 @@ Archivos de salida
    tipo 1 (intactas), 2 (dañadas) y 5 (rotas). Los grados de libertad fijos
    se listan como ``D,nodo,dirección`` y el desplazamiento impuesto a los
    nodos cargados, medido desde su posición inicial, como
-   ``D,nodo,dirección,valor``.
+   ``D,nodo,dirección,valor``. En el ensayo 103 las fuerzas aplicadas se listan como
+   ``F,nodo,dirección,valor``.
 ``snapshot_0000.vtu``, ... y ``snapshots.pvd``
    Archivos VTK. Abrir ``snapshots.pvd`` en `ParaView <https://www.paraview.org>`_;
    colorear por ``damageState`` (datos de celda) para ver las fisuras y usar

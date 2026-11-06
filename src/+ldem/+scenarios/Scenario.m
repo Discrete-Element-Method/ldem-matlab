@@ -13,7 +13,8 @@ classdef (Abstract) Scenario
     %     4. Register the class in ldem.scenarios.fromTestId.
     %
     %   See also ldem.scenarios.UniaxialTension,
-    %   ldem.scenarios.FourPointBending, ldem.scenarios.fromTestId.
+    %   ldem.scenarios.FourPointBending, ldem.scenarios.ClampedBeam,
+    %   ldem.scenarios.fromTestId.
 
     properties (Abstract, Constant)
         % Number that identifies the scenario in the input file (TEST).

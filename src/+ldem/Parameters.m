@@ -26,7 +26,8 @@ classdef Parameters
 
     properties
         % Test identifier selecting the boundary conditions and loads
-        % (101 = uniaxial tension, 102 = four-point bending). Legacy: TEST.
+        % (101 = uniaxial tension, 102 = four-point bending, 103 = beam
+        % clamped at both ends loaded with a force). Legacy: TEST.
         testId (1,1) double {mustBeInteger, mustBePositive} = 101
 
         % Seed of the random number generator used for the optional mesh

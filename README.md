@@ -85,8 +85,8 @@ quase-frágeis (concreto, rochas).
 Executar os testes:
 
 ```matlab
->> buildtool          % static analysis + fast tests (needs R2022b or newer)
->> buildtool testAll  % also the slow tests
+>> buildtool          % análise estática + testes rápidos (requer R2022b ou superior)
+>> buildtool testAll  % inclui também os testes lentos
 ```
 
 ### Documentação
@@ -136,8 +136,8 @@ cuasi-frágiles (hormigón, rocas).
 Ejecutar los tests:
 
 ```matlab
->> buildtool          % static analysis + fast tests (needs R2022b or newer)
->> buildtool testAll  % also the slow tests
+>> buildtool          % análisis estático + tests rápidos (requiere R2022b o posterior)
+>> buildtool testAll  % incluye también los tests lentos
 ```
 
 ### Documentación

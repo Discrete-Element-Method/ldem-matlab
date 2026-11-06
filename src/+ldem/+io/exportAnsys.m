@@ -18,6 +18,9 @@ function counts = exportAnsys(path, mesh, state)
 %   (mesh.fixed), with value zero. The applied-loads section then gives, as
 %   "D,node,direction,value", the displacement imposed on the loaded nodes
 %   measured from their initial position (nothing is written at time zero).
+%   For a scenario loaded with forces (test 103) a further section lists the
+%   applied forces of the state as "F,node,direction,value" (FX, FY, FZ); it is
+%   omitted when there are none.
 %   Note that the node coordinates of the file are the current positions, so
 %   the file shows the state of the simulation; it is not a restart of the
 %   analysis from the undeformed lattice. Node positions are written in
@@ -128,6 +131,24 @@ for node = find(any(imposed ~= 0, 2)).'
     end
 end
 fprintf(fid, '\n');
+
+% Applied forces: scenarios loaded with forces (test 103) set state.appliedForce.
+% The section is written only when there is a force, so that the files of the
+% displacement-controlled tests stay equal to the legacy ones.
+forces = zeros(nNodes, 3);
+if isfield(state, 'appliedForce')
+    forces = state.appliedForce;
+end
+if any(forces(:) ~= 0)
+    forceLabels = ["FX", "FY", "FZ"];
+    fprintf(fid, '!FORCAS APLICADAS\n');
+    for node = find(any(forces ~= 0, 2)).'
+        for direction = find(forces(node, :) ~= 0)
+            fprintf(fid, 'F,%d,%s,%g\n', node, forceLabels(direction), forces(node, direction));
+        end
+    end
+    fprintf(fid, '\n');
+end
 
 fprintf(fid, '/VIEW,1,0,-1,0\n');
 fprintf(fid, 'EPLOT\n');

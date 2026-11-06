@@ -4,7 +4,7 @@ Contributing
 The API documentation is generated from the ``.m`` comments. The docstring
 must be the comment block placed **immediately after** the ``function`` line
 (before any ``global`` declaration). Source comments are written in
-Portuguese.
+English.
 
 .. code-block:: matlab
 

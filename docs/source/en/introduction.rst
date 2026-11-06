@@ -8,11 +8,17 @@ include damage/fracture, and the equations of motion are integrated with an
 explicit central-difference scheme. Energies (external, kinetic, elastic,
 dissipated) are tracked at every step.
 
-Main routines (see :doc:`../api/index`):
+Main parts of the ``ldem`` package (see :doc:`../api/index`):
 
-* ``ini_DEM3`` – initialises the global variables.
-* ``read_dat0`` – reads the input data file.
-* ``CONECTI`` / ``INTCO1`` / ``EXTCO1`` – bar connectivity.
-* ``RMEC`` – mechanical properties of the bars.
-* ``BOUND`` / ``CALOAD`` – boundary conditions and loads.
-* ``ENERG2`` – energy balance.
+* ``ldem.Parameters`` / ``ldem.io.readInputFile`` – validated input data.
+* ``ldem.mesh`` – nodes, bars, masses and bar geometry.
+* ``ldem.material`` – bar stiffness, critical strain and the bilinear damage law.
+* ``ldem.scenarios`` – supports, loads and reactions of each test.
+* ``ldem.solver`` – time integration and energy balance.
+* ``ldem.runSimulation`` – the whole simulation, with ``results.mat``, ANSYS and
+  VTK output.
+
+The routines of the original program (``ini_DEM3``, ``read_dat0``, ``RMEC``,
+``BOUND``, ``CALOAD``, ``ENERG2``, ...) are kept in the git history under the tag
+``legacy-reference``; the ``Legacy:`` line of each help text names the routine it
+replaces.

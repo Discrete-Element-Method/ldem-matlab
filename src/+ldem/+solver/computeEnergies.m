@@ -28,8 +28,10 @@ function energy = computeEnergies(state, mesh, barProps, params)
 %   compares the work of the last step with the energy at its end, an error of
 %   about 1/N for energies that grow like t^2).
 %
-%   The balance does not close when the loaded nodes are not held by the
-%   scenario, as in the legacy tension test (see
+%   In a scenario loaded with forces (ldem.scenarios.ClampedBeam) the work of
+%   the applied forces on the free degrees of freedom is part of the external
+%   work. The balance does not close when a prescribed motion is not held by
+%   the scenario, as happened in the legacy tension test (fixed here, see
 %   ldem.scenarios.UniaxialTension).
 %
 %   For a damaged bar with critical strain EP, largest strain EM and
