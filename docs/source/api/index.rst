@@ -56,6 +56,7 @@ Material
 .. mat:autofunction:: ldem.material.latticeCoefficients
 .. mat:autofunction:: ldem.material.computeBarStiffness
 .. mat:autofunction:: ldem.material.buildBarProperties
+.. mat:autofunction:: ldem.material.generateRandomField
 .. mat:autofunction:: ldem.material.bilinearLaw
 .. mat:autofunction:: ldem.material.summarizeMaterial
 

@@ -71,6 +71,14 @@
   instead of the legacy routines, `Parameters.testId` and `Scenario` mention test 103, the results tables
   include `brokenBars` and the reaction of test 103, and the Portuguese and Spanish READMEs translate the
   `buildtool` comments.
+- Random field generated in memory: `ldem.material.generateRandomField` ports the
+  external script `Aleat_novo4.m` (Weibull values on a grid of poles, trilinear
+  interpolation to the bar centres), vectorised and without toolboxes. It is
+  switched on with `Parameters.randomFieldCv > 0`, with
+  `randomFieldCorrelationLength` (in module lengths, default 3) and
+  `randomFieldSeed` (default 515); no text file is needed. The multiplier of each
+  bar is stored in `results.barProps.randomField` and its origin and statistics in
+  `results.material.randomField`, also for a field read from a file.
 
 ### Changed
 - Example inputs moved to `examples/beam_102/`.

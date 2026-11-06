@@ -100,6 +100,22 @@ classdef TestParameters < LdemTestCase
             testCase.verifyEqual(a.seed, 123, 'Parameters must be a value class.');
         end
 
+        function randomFieldSettingsAreValidated(testCase)
+            p = ldem.Parameters(randomFieldCv=0.05, randomFieldCorrelationLength=[2 2 4]);
+            testCase.verifyEqual(p.randomFieldCv, 0.05);
+            testCase.verifyEqual(p.randomFieldSeed, 515);
+            testCase.verifyError(@() ldem.Parameters(randomFieldCv=0.05, randomFieldFile="f.txt"), ...
+                'ldem:params:twoRandomFields');
+            testCase.verifyError(@() ldem.Parameters(randomFieldCv=1e-6), ...
+                'ldem:params:badRandomFieldCv');
+            testCase.verifyError(@() ldem.Parameters(randomFieldCv=5), ...
+                'ldem:params:badRandomFieldCv');
+            testCase.verifyError(@() ldem.Parameters(randomFieldCorrelationLength=[1 2]), ...
+                'ldem:params:badCorrelationLength');
+            testCase.verifyError(@() ldem.Parameters(randomFieldCorrelationLength=0), ?MException);
+            testCase.verifyError(@() ldem.Parameters(randomFieldCv=-0.1), ?MException);
+        end
+
         function validateCatchesChangesAfterConstruction(testCase)
             p = ldem.Parameters();
             p.dt = 1e-5;

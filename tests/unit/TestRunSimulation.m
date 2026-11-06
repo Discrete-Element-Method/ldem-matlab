@@ -111,6 +111,22 @@ classdef TestRunSimulation < LdemTestCase
             testCase.verifyEqual(loaded.results.params.nSteps, 100);
         end
 
+        function generatedRandomFieldIsSavedInTheResults(testCase)
+            params = testCase.quickParams();
+            params.randomFieldCv = 0.05;
+            folder = fullfile(testCase.tempFolder(), "run");
+            results = ldem.runSimulation(params, OutputFolder=folder);
+
+            nBars = size(results.mesh.bars, 1);
+            testCase.verifySize(results.barProps.randomField, [nBars 1]);
+            testCase.verifyEqual(results.material.randomField.source, "generated");
+            testCase.verifyEqual(results.params.randomFieldCv, 0.05);
+
+            loaded = load(fullfile(folder, "results.mat"));
+            testCase.verifyEqual(loaded.results.barProps.randomField, results.barProps.randomField);
+            testCase.verifyEqual(loaded.results.material.randomField.seed, params.randomFieldSeed);
+        end
+
         function onlyTheRequestedFormatsAreWritten(testCase)
             folder = fullfile(testCase.tempFolder(), "run");
             ldem.runSimulation(testCase.quickParams(), OutputFolder=folder, Formats="vtk");

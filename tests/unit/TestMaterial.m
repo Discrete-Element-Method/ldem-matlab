@@ -110,6 +110,45 @@ classdef TestMaterial < LdemTestCase
             testCase.verifyEqual(props.criticalStrain, field .* base.criticalStrain, 'RelTol', 1e-9);
         end
 
+        function randomFieldIsGeneratedFromTheParameters(testCase)
+            params = ldem.Parameters(nModules=[6 4 4], randomFieldCv=0.1, ...
+                randomFieldCorrelationLength=2, randomFieldSeed=9);
+            probe = ldem.Parameters(nModules=[6 4 4]);
+            mesh = ldem.mesh.buildMesh(params);
+            [props, ~] = ldem.material.buildBarProperties(mesh, params);
+            [base, ~] = ldem.material.buildBarProperties(mesh, probe);
+
+            expected = ldem.material.generateRandomField(mesh.barCentres, 0.1, ...
+                2 * params.moduleLength, 9);
+            testCase.verifyEqual(props.randomField, expected);
+            testCase.verifyEqual(props.criticalStrain, expected .* base.criticalStrain, 'RelTol', 1e-12);
+            testCase.verifyEqual(props.randomFieldInfo.source, "generated");
+            testCase.verifyEqual(props.randomFieldInfo.correlationLength, ...
+                repmat(2 * params.moduleLength, 1, 3));
+        end
+
+        function randomFieldIsStoredWithItsSource(testCase)
+            params = ldem.Parameters(nModules=[3 3 3]);
+            mesh = ldem.mesh.buildMesh(params);
+            nBars = size(mesh.bars, 1);
+
+            props = ldem.material.buildBarProperties(mesh, params);
+            testCase.verifyEqual(props.randomField, ones(nBars, 1));
+            testCase.verifyEqual(props.randomFieldInfo.source, "none");
+
+            given = 1 + 0.01 * (1:nBars).';
+            props = ldem.material.buildBarProperties(mesh, params, RandomField=given);
+            testCase.verifyEqual(props.randomField, given);
+            testCase.verifyEqual(props.randomFieldInfo.source, "given");
+            testCase.verifyEqual(props.randomFieldInfo.fieldMean, mean(given));
+
+            path = testCase.writeNumbers(given);
+            props = ldem.material.buildBarProperties(mesh, ...
+                ldem.Parameters(nModules=[3 3 3], randomFieldFile=path));
+            testCase.verifyEqual(props.randomFieldInfo.source, "file");
+            testCase.verifyEqual(props.randomFieldInfo.file, string(path));
+        end
+
         function randomFieldOfWrongSizeIsRejected(testCase)
             params = ldem.Parameters(nModules=[3 3 3]);
             mesh = ldem.mesh.buildMesh(params);

@@ -92,9 +92,27 @@ classdef Parameters
         trackedBar (1,1) double {mustBeInteger, mustBePositive} = 7014
 
         % Text file with one multiplier of the critical strain per bar
-        % (random field). Empty means "no random field" (all multipliers 1).
-        % Legacy: file "arquivo_3lc_rnao_cv05".
+        % (random field). Empty means "no random field" (all multipliers 1)
+        % unless randomFieldCv is positive. Legacy: file
+        % "arquivo_3lc_rnao_cv05".
         randomFieldFile (1,1) string = ""
+
+        % Coefficient of variation of the random field generated in memory
+        % (see ldem.material.generateRandomField). 0 (the default) generates
+        % nothing; a positive value, between 1e-4 and 3, generates the field
+        % and cannot be combined with randomFieldFile. Legacy: Cv of
+        % Aleat_novo4.m (0.05 for "arquivo_3lc_rnao_cv05").
+        randomFieldCv (1,1) double {mustBeNonnegative, mustBeFinite} = 0
+
+        % Correlation length of the generated random field, that is the
+        % spacing of its pole grid, in module lengths (multiples of
+        % moduleLength): a scalar or [x y z]. Legacy: lcorx, lcory, lcorz
+        % of Aleat_novo4.m divided by Lc ("3lc" means 3).
+        randomFieldCorrelationLength (1,:) double {mustBePositive, mustBeFinite} = 3
+
+        % Seed of the random numbers of the generated random field.
+        % Legacy: semente of Aleat_novo4.m.
+        randomFieldSeed (1,1) double {mustBeInteger, mustBeNonnegative} = 515
 
         % Random perturbation of the node coordinates, as the standard
         % deviation expressed as a fraction of the module length. 0 (the
@@ -190,6 +208,22 @@ classdef Parameters
             if obj.output.trackedBarEvery > 1
                 error('ldem:params:badOutput', ...
                     'output.trackedBarEvery must be 0 or 1 (the tracked bar is stored at every step).');
+            end
+
+            % Random field: from a file or generated, not both.
+            if obj.randomFieldCv > 0 && strlength(obj.randomFieldFile) > 0
+                error('ldem:params:twoRandomFields', ...
+                    ['Set either randomFieldFile (read the field) or randomFieldCv ' ...
+                     '(generate it), not both.']);
+            end
+            if obj.randomFieldCv > 0 && (obj.randomFieldCv < 1e-4 || obj.randomFieldCv > 3)
+                error('ldem:params:badRandomFieldCv', ...
+                    'randomFieldCv must be 0 or between 1e-4 and 3, got %g.', obj.randomFieldCv);
+            end
+            if ~any(numel(obj.randomFieldCorrelationLength) == [1 3])
+                error('ldem:params:badCorrelationLength', ...
+                    ['randomFieldCorrelationLength must be a scalar or have 3 values ' ...
+                     '[x y z], got %d values.'], numel(obj.randomFieldCorrelationLength));
             end
 
             % Time integration.

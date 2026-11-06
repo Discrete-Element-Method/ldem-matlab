@@ -24,6 +24,12 @@ Tutto è una proprietà di ``ldem.Parameters``:
   quindi il prisma ha ``(M-1)*(N-1)*(L-1)`` moduli.
 * ``randomFieldFile`` moltiplica la deformazione critica di ogni barra per un
   valore letto da un file di testo (campo casuale della resistenza).
+* ``randomFieldCv`` genera invece quel campo casuale in memoria, senza file:
+  valori di Weibull con media 1 e quel coefficiente di variazione su una
+  griglia di poli distanziati ``randomFieldCorrelationLength`` lunghezze di
+  modulo (3 per default), interpolati su ogni barra; ``randomFieldSeed`` fissa
+  i numeri casuali. Il valore di ogni barra resta in
+  ``results.barProps.randomField``.
 * ``dt`` deve essere minore di ``params.criticalTimeStep``; ``Parameters``
   rifiuta un valore instabile e ne spiega il motivo.
 

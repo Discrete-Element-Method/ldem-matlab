@@ -115,3 +115,16 @@ behaviour is kept). No item is open.
     as item 3): their position was overwritten at every step and then moved
     freely, so no force did work on them and the energy balance could not
     close. **Corrected** together with item 3.
+20. **`Aleat_novo4.m` (external generator of the random field file): the mean is
+    not 1 and the interpolation has two typos.** The Weibull scale is
+    `Gamma(1+1/k)` instead of `1/Gamma(1+1/k)`, so the mean of the field is
+    `Gamma(1+1/k)^2` (0.957 for `Cv = 0.05`, the mean of
+    `arquivo_3lc_rnao_cv05`). In the trilinear interpolation the x-z term uses
+    `V6-V5-V3+V1` instead of `V6-V5-V2+V1` and `ZZp(ii)` instead of `ZZp(iip)`,
+    which adds scatter: the bundled file has a CV of 0.054 although the poles
+    had 0.05, while a correct interpolation always lowers it. The script also
+    needed `BARI.txt` (bar centres), which no code of the repository writes.
+    **Resolved**: `ldem.material.generateRandomField` (enabled with
+    `params.randomFieldCv`) uses mean 1 and the exact trilinear interpolation
+    and takes the bar centres from the mesh. Its fields are therefore not equal
+    to the legacy files; to reproduce a legacy run keep `randomFieldFile`.

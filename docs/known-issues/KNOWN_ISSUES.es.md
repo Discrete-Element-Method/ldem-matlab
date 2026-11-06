@@ -122,3 +122,18 @@ comportamiento original). No queda ningún ítem abierto.
     error que el ítem 3): su posición se sobrescribía en cada paso y luego se
     movían libremente, así que ninguna fuerza hacía trabajo sobre ellos y el
     balance de energía no podía cerrar. **Corregido** junto con el ítem 3.
+20. **`Aleat_novo4.m` (generador externo del archivo de campo aleatorio): la
+    media no es 1 y la interpolación tiene dos erratas.** La escala de la
+    Weibull es `Gamma(1+1/k)` en lugar de `1/Gamma(1+1/k)`, así que la media del
+    campo es `Gamma(1+1/k)^2` (0,957 para `Cv = 0.05`, la media de
+    `arquivo_3lc_rnao_cv05`). En la interpolación trilineal el término x-z usa
+    `V6-V5-V3+V1` en lugar de `V6-V5-V2+V1` y `ZZp(ii)` en lugar de `ZZp(iip)`,
+    lo que agrega dispersión: el archivo incluido tiene un CV de 0,054 aunque
+    los polos tenían 0,05, mientras que una interpolación correcta siempre lo
+    reduce. El script además necesitaba `BARI.txt` (centros de las barras), que
+    ningún código del repositorio escribe. **Resuelto**:
+    `ldem.material.generateRandomField` (se activa con `params.randomFieldCv`)
+    usa media 1 y la interpolación trilineal exacta, y toma los centros de las
+    barras de la malla. Por eso sus campos no son iguales a los archivos
+    legacy; para reproducir una corrida legacy hay que seguir usando
+    `randomFieldFile`.

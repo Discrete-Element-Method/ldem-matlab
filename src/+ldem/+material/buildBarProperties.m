@@ -14,8 +14,10 @@ function [barProps, history] = buildBarProperties(mesh, params, options)
 %       KR  = Lcr / L                         rupture strain / critical strain
 %
 %   with the material data of ldem.Parameters, the failure-area factor CAF
-%   and the lattice coefficient alpha. EP is EP0 times a random field when
-%   params.randomFieldFile is set.
+%   and the lattice coefficient alpha. EP is EP0 times a random field, which
+%   is read from params.randomFieldFile when it is set, or generated in
+%   memory (ldem.material.generateRandomField) when params.randomFieldCv is
+%   positive.
 %
 %   Inputs:
 %     mesh    Struct from ldem.mesh.buildMesh.
@@ -23,8 +25,9 @@ function [barProps, history] = buildBarProperties(mesh, params, options)
 %
 %   Name-value options:
 %     RandomField  nBars-by-1 vector of multipliers of the critical strain.
-%                  Overrides params.randomFieldFile. Default: use the file
-%                  if there is one, otherwise all ones.
+%                  Overrides params.randomFieldFile and params.randomFieldCv.
+%                  Default: read the file if there is one, else generate the
+%                  field if randomFieldCv > 0, otherwise all ones.
 %
 %   Outputs:
 %     barProps  Struct of properties that stay constant during the simulation.
@@ -38,6 +41,11 @@ function [barProps, history] = buildBarProperties(mesh, params, options)
 %     ruptureStrain       ER = KR*EP, strain at which the bar breaks
 %     criticalStrainMean  scalar, mean of EP
 %     criticalStrainCv    scalar, coefficient of variation of EP
+%     randomField         multiplier of EP0 of each bar (all ones without field)
+%     randomFieldInfo     struct: source ("none", "file", "generated" or
+%                         "given"), fieldMean, fieldCv and, for a generated
+%                         field, the fields listed in
+%                         ldem.material.generateRandomField
 %
 %   Fields of history (nBars-by-1), updated by ldem.material.bilinearLaw:
 %
@@ -59,7 +67,7 @@ function [barProps, history] = buildBarProperties(mesh, params, options)
 %   Legacy: NAYFES0, RMEC, the random-field loop of the main program, CALCOEV.
 %
 %   See also ldem.material.bilinearLaw, ldem.material.computeBarStiffness,
-%   ldem.io.readRandomField.
+%   ldem.io.readRandomField, ldem.material.generateRandomField.
 
 arguments
     mesh (1,1) struct
@@ -86,15 +94,25 @@ end
 % Random scatter of the critical strain.
 if ~isempty(options.RandomField)
     field = options.RandomField;
+    fieldInfo = struct('source', "given");
 elseif strlength(params.randomFieldFile) > 0
     field = ldem.io.readRandomField(params.randomFieldFile, nBars);
+    fieldInfo = struct('source', "file", 'file', params.randomFieldFile);
+elseif params.randomFieldCv > 0
+    [field, fieldInfo] = ldem.material.generateRandomField(mesh.barCentres, ...
+        params.randomFieldCv, ...
+        params.randomFieldCorrelationLength * params.moduleLength, ...
+        params.randomFieldSeed);
 else
     field = ones(nBars, 1);
+    fieldInfo = struct('source', "none");
 end
 if numel(field) ~= nBars
     error('ldem:material:randomFieldSize', ...
         'The random field has %d values but the mesh has %d bars.', numel(field), nBars);
 end
+fieldInfo.fieldMean = mean(field);
+fieldInfo.fieldCv   = std(field) / mean(field);
 criticalStrain = field .* baseCriticalStrain;
 
 barProps = struct();
@@ -104,6 +122,8 @@ barProps.ruptureRatio       = ruptureRatio;
 barProps.ruptureStrain      = ruptureRatio .* criticalStrain;
 barProps.criticalStrainMean = mean(criticalStrain);
 barProps.criticalStrainCv   = std(criticalStrain) / mean(criticalStrain);
+barProps.randomField        = field;
+barProps.randomFieldInfo    = fieldInfo;
 
 history = struct();
 history.tensionStiffness = stiffness;

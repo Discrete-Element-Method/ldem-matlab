@@ -24,6 +24,11 @@ Everything is a property of ``ldem.Parameters``:
   prism has ``(M-1)*(N-1)*(L-1)`` modules.
 * ``randomFieldFile`` multiplies the critical strain of each bar by a value
   read from a text file (a random field of the material strength).
+* ``randomFieldCv`` generates that random field in memory instead, with no
+  file: Weibull values with mean 1 and that coefficient of variation on a grid
+  of poles spaced ``randomFieldCorrelationLength`` module lengths apart (default
+  3), interpolated to each bar; ``randomFieldSeed`` fixes the random numbers.
+  The value of each bar is kept in ``results.barProps.randomField``.
 * ``dt`` must be below ``params.criticalTimeStep``; ``Parameters`` rejects an
   unstable value and says so.
 
