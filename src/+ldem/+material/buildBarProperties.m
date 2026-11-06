@@ -42,10 +42,7 @@ function [barProps, history] = buildBarProperties(mesh, params, options)
 %     criticalStrainMean  scalar, mean of EP
 %     criticalStrainCv    scalar, coefficient of variation of EP
 %     randomField         multiplier of EP0 of each bar (all ones without field)
-%     randomFieldInfo     struct: source ("none", "file", "generated" or
-%                         "given"), fieldMean, fieldCv and, for a generated
-%                         field, the fields listed in
-%                         ldem.material.generateRandomField
+%     randomFieldInfo     struct: source ("none", "file", "generated" or "given"), fieldMean, fieldCv and, for a generated field, those of ldem.material.generateRandomField
 %
 %   Fields of history (nBars-by-1), updated by ldem.material.bilinearLaw:
 %

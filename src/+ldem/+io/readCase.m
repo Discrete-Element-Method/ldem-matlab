@@ -32,8 +32,7 @@ function c = readCase(path)
 %          params    Validated ldem.Parameters.
 %          scenario  Scenario object with the values of the [scenario] section.
 %          options   Struct with OutputFolder and Formats, for runSimulation.
-%          info      Struct: source, format, title, authors, controlNodeNames
-%                    and nodeNotes (how each "at" position was resolved).
+%          info      Struct: source, format, title, authors, controlNodeNames and nodeNotes.
 %
 %   Errors:
 %     ldem:io:fileNotFound        The file does not exist.

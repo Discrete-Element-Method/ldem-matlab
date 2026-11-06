@@ -11,12 +11,8 @@ function reg = registry()
 %     name       Name used in the case file, "type = ..." (snake_case).
 %     className  Name of the class, a subclass of ldem.scenarios.Scenario.
 %     testId     Value of the constant property testId of the class.
-%     units      Struct that maps each property that can be set from a case
-%                file to its dimension (see ldem.schema.unitTable). The key in
-%                the file is the property name in snake_case: forceRate is
-%                force_rate.
-%     keywords   Struct that maps a property to a word that stands for NaN
-%                in the file (ClampedBeam.loadPosition: "midspan").
+%     units      Struct mapping each property a case file may set to its dimension (key in the file: snake_case, forceRate is force_rate).
+%     keywords   Struct mapping a property to a word that stands for NaN in the file (ClampedBeam.loadPosition: "midspan").
 %
 %   Output:
 %     reg  Struct array.

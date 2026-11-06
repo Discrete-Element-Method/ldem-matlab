@@ -20,6 +20,7 @@ function results = runSimulation(params, options)
 %     Formats       Files to write: "mat", "ansys" and/or "vtk" (default "mat").
 %     Scenario      Scenario object (default: the one registered for params.testId).
 %     Verbose       Print the progress (default false).
+%     CaseInfo      Struct stored in results.info.case (ldem.run keeps the case file that was run there).
 %
 %   With an empty OutputFolder the results are only returned. The ANSYS and
 %   VTK files are written at time zero and every params.output.snapshotEvery
@@ -62,6 +63,7 @@ arguments
     options.Formats (1,:) string {mustBeMember(options.Formats, ["mat", "ansys", "vtk"])} = "mat"
     options.Scenario = []
     options.Verbose (1,1) logical = false
+    options.CaseInfo = []
 end
 
 params.validate();
@@ -105,7 +107,10 @@ results.info = struct( ...
     'date',           string(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss')), ...
     'matlabRelease',  string(version('-release')), ...
     'elapsedSeconds', toc(timer));
-results.params       = params.toStruct();
+if ~isempty(options.CaseInfo)
+    results.info.case = options.CaseInfo;
+end
+results.params      = params.toStruct();
 results.model        = ldem.mesh.summarizeModel(mesh, params);
 results.material     = ldem.material.summarizeMaterial(barProps, params);
 results.mesh         = mesh;

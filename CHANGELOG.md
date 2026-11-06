@@ -15,6 +15,10 @@
   field file, snapshot memory), and `ldem.Parameters.fromFile` reads `.ldem` and
   `.json` too. The keys live in one table, `ldem.schema.caseSchema`, with
   `ldem.schema.parseQuantity` / `formatQuantity` for the units.
+- `ldem.run` makes every run reproducible: `results.info.case` keeps the SHA-256
+  of the case file, its text and the resolved case (all defaults and overrides),
+  and the resolved case is saved as `case.ldem` in the output folder
+  (`ldem.runSimulation` has a new `CaseInfo` option for this).
 - `ldem.scenarios.registry` is the single list of scenarios;
   `ldem.scenarios.fromTestId` reads it and `ldem.scenarios.fromName` is new.
 - `case.ldem` next to the `DATA0.DAT` of `examples/beam_102` and

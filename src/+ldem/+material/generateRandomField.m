@@ -10,14 +10,9 @@ function [field, info] = generateRandomField(barCentres, cv, correlationLength, 
 %
 %   Method (the one of Aleat_novo4.m):
 %
-%     1. A regular grid of "poles" with spacing correlationLength covers
-%        the bar centres, with one extra pole on each side.
-%     2. Each pole gets an independent Weibull value with mean 1 and
-%        coefficient of variation cv. The shape k solves
-%            Gamma(1+2/k) / Gamma(1+1/k)^2 = 1 + cv^2
-%        and the scale is 1/Gamma(1+1/k).
-%     3. The value of a bar is the trilinear interpolation of the 8 poles
-%        of the grid cell that contains its centre.
+%     1. A regular grid of "poles" with spacing correlationLength covers the bar centres, with one extra pole on each side.
+%     2. Each pole gets an independent Weibull value with mean 1 and coefficient of variation cv. The shape k solves Gamma(1+2/k)/Gamma(1+1/k)^2 = 1 + cv^2 and the scale is 1/Gamma(1+1/k).
+%     3. The value of a bar is the trilinear interpolation of the 8 poles of the grid cell that contains its centre.
 %
 %   The interpolation averages neighbouring poles, so the coefficient of
 %   variation of the bars (info.fieldCv) is somewhat smaller than cv; the
@@ -32,16 +27,19 @@ function [field, info] = generateRandomField(barCentres, cv, correlationLength, 
 %
 %   Outputs:
 %     field  nBars-by-1 vector of positive multipliers.
-%     info   Struct describing the field:
-%              source             "generated"
-%              cv                 cv requested
-%              correlationLength  1-by-3 pole spacing [m]
-%              seed               seed used
-%              weibullShape       shape k of the pole distribution
-%              weibullScale       scale of the pole distribution
-%              nPoles             1-by-3 number of poles along x, y, z
-%              fieldMean          mean of field
-%              fieldCv            coefficient of variation of field
+%     info   Struct describing the field (fields listed below).
+%
+%   Fields of info:
+%
+%     source             "generated"
+%     cv                 cv requested
+%     correlationLength  1-by-3 pole spacing [m]
+%     seed               seed used
+%     weibullShape       shape k of the pole distribution
+%     weibullScale       scale of the pole distribution
+%     nPoles             1-by-3 number of poles along x, y, z
+%     fieldMean          mean of field
+%     fieldCv            coefficient of variation of field
 %
 %   The random numbers come from a private stream (Mersenne Twister seeded
 %   with seed), so the global random state is not touched and the same seed
@@ -55,8 +53,7 @@ function [field, info] = generateRandomField(barCentres, cv, correlationLength, 
 %   Example:
 %       params = ldem.Parameters(nModules=[6 3 3]);
 %       mesh = ldem.mesh.buildMesh(params);
-%       field = ldem.material.generateRandomField(mesh.barCentres, 0.05, ...
-%           3 * params.moduleLength, 515);
+%       field = ldem.material.generateRandomField(mesh.barCentres, 0.05, 3 * params.moduleLength, 515);
 %
 %   Legacy: Aleat_novo4.m (outside the main program; it wrote the file read
 %   by ldem.io.readRandomField).

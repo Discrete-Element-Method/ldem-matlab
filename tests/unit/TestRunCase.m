@@ -58,6 +58,41 @@ classdef TestRunCase < LdemTestCase
             testCase.verifyFalse(isfile(fullfile(out, "snapshot_0000.mac")));
         end
 
+        function resultsKeepTheCaseThatWasRun(testCase)
+            results = ldem.run(testCase.CasePath, Formats = "mat", Verbose = false);
+            info = results.info.case;
+
+            fid = fopen(testCase.CasePath, 'r');
+            bytes = fread(fid, Inf, '*uint8');
+            fclose(fid);
+            digest = java.security.MessageDigest.getInstance('SHA-256');
+            expected = string(lower(reshape(dec2hex(typecast(digest.digest(bytes), 'uint8'), 2).', 1, [])));
+            testCase.verifyEqual(info.sha256, expected);
+            testCase.verifyEqual(info.original, string(fileread(testCase.CasePath)));
+            testCase.verifyEqual(strlength(info.sha256), 64);
+
+            % The resolved case reads back into the parameters that ran.
+            path = fullfile(testCase.Folder, "resolved.ldem");
+            writeTextFile(path, splitlines(info.resolved));
+            again = ldem.io.readCase(path);
+            testCase.verifyEqual(again.params.toStruct(), results.params);
+        end
+
+        function theResolvedCaseIsSavedNextToTheResults(testCase)
+            results = ldem.run(testCase.CasePath, Verbose = false);
+            saved = fullfile(testCase.Folder, "out", "case.ldem");
+            testCase.verifyTrue(isfile(saved));
+            again = ldem.io.readCase(saved);
+            testCase.verifyEqual(again.params.toStruct(), results.params);
+            data = load(fullfile(testCase.Folder, "out", "results.mat"));
+            testCase.verifyEqual(data.results.info.case.sha256, results.info.case.sha256);
+        end
+
+        function runSimulationWithoutACaseHasNoCaseInfo(testCase)
+            results = ldem.runSimulation(ldem.Parameters(totalTime = 2e-6));
+            testCase.verifyFalse(isfield(results.info, 'case'));
+        end
+
         function runOptionsOverrideTheCase(testCase)
             other = fullfile(testCase.Folder, "other");
             ldem.run(testCase.CasePath, OutputFolder = other, Formats = "mat", Verbose = false);

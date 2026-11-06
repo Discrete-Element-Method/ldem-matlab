@@ -20,9 +20,7 @@ function text = writeCase(path, params, scenario, options)
 %     Authors           String array for the "authors" key.
 %     Header            Extra comment lines at the top (without the #).
 %     OutputFolder      Value of output.folder (default "output").
-%     Formats           Files to enable in [output]: "mat", "ansys", "vtk"
-%                       (default all; ansys and vtk are switched off when
-%                       snapshots are never taken).
+%     Formats           Files to enable in [output]: "mat", "ansys", "vtk" (default all; ansys and vtk are off without snapshots).
 %     ControlNodeNames  One label per control node (default "node_<number>").
 %     Comments          false to omit the explanatory comments (default true).
 %
@@ -30,8 +28,7 @@ function text = writeCase(path, params, scenario, options)
 %     text  The content of the file, a string scalar.
 %
 %   Errors:
-%     ldem:io:unregisteredScenario  The scenario class is not in
-%                                   ldem.scenarios.registry.
+%     ldem:io:unregisteredScenario  The scenario class is not in ldem.scenarios.registry.
 %     ldem:io:cannotOpenFile        The file cannot be created.
 %
 %   Example:

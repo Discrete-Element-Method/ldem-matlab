@@ -6,11 +6,7 @@ function entries = parseCaseJson(text, source)
 %   formats alike. The JSON has one object per section and the values that
 %   carry a unit are strings:
 %
-%       {
-%         "format": 1,
-%         "mesh": { "module_size": "1 mm", "modules": [5, 5, 50] },
-%         "monitor": { "node": [ {"id": 2441}, {"id": 884} ] }
-%       }
+%       {"format": 1, "mesh": {"module_size": "1 mm", "modules": [5, 5, 50]}}
 %
 %   A repeated table such as [[monitor.node]] is an array of objects. JSON has
 %   no comments; use the .ldem format for files written by hand.

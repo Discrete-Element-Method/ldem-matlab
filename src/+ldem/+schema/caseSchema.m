@@ -9,13 +9,9 @@ function schema = caseSchema()
 %   Fields of every row:
 %
 %     path       Section and key, for example "material.young_modulus".
-%     kind       How the value is read: "integer", "number", "quantity" (a
-%                number with a unit), "string", "stringlist", "path" (a file,
-%                relative to the case file), "intlist", "numberlist", "bool",
-%                "enum", "stepOrAuto" or "cadence" (steps or time).
+%     kind       How the value is read: integer, number, quantity (number with a unit), string, stringlist, path, intlist, numberlist, bool, enum, stepOrAuto or cadence.
 %     dimension  Dimension of a "quantity", see ldem.schema.unitTable.
-%     prop       Name of the ldem.Parameters property it sets ("" if the key
-%                needs special handling).
+%     prop       Name of the ldem.Parameters property it sets ("" if the key needs special handling).
 %     required   True if the file must contain the key.
 %     legacy     Variable of the legacy DATA0.DAT file it replaces.
 %     doc        One-line description, used for the comments of the template.

@@ -26,9 +26,7 @@ function summary = summarizeMaterial(barProps, params)
 %     criticalStrainCv    coefficient of variation of EP
 %     criticalStrainMin   smallest EP
 %     criticalStrainMax   largest EP
-%     randomField         where the random field came from and its
-%                         statistics (barProps.randomFieldInfo); the value
-%                         of each bar is barProps.randomField
+%     randomField         where the random field came from and its statistics (barProps.randomFieldInfo); the value of each bar is barProps.randomField
 %
 %   Input:
 %     barProps  Struct from ldem.material.buildBarProperties.

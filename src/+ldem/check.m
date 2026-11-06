@@ -22,8 +22,7 @@ function report = check(casePath)
 %               nSnapshots         Snapshots taken (0 if never).
 %               snapshotMemoryMB   Memory of the snapshots kept in results.
 %               randomField        Text: "none", "generated" or the state of the file.
-%               controlNodes       Struct array: number, name and position
-%                                  [x y z] in modules.
+%               controlNodes       Struct array: number, name and position [x y z] in modules.
 %
 %   Errors:
 %     The ones of ldem.io.readCase, and ldem:scenarios:noNodesSelected when
