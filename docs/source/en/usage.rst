@@ -94,7 +94,8 @@ Rules of the format:
      - ``module_size``, ``modules``, ``perturbation`` (random displacement of
        the nodes, fraction of the module), ``seed`` (of the perturbation)
    * - ``[material]``
-     - ``law``, ``young_modulus``, ``poisson_ratio``, ``density``,
+     - ``law`` (``bilinear``, the legacy law, or ``linear_elastic``: no damage and no
+       rupture), ``young_modulus``, ``poisson_ratio``, ``density``,
        ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
    * - ``[material.scatter]``
      - Scatter of the critical strain of the bars. ``type = "none"``;
@@ -104,10 +105,12 @@ Rules of the format:
    * - ``[time]``
      - ``step`` (or ``auto``), ``duration``
    * - ``[damping]``
-     - ``type``, ``initial``, ``final``, ``switch_time``, ``constitutive``
+     - ``type`` (``mass_proportional``, the legacy damping, or ``none``),
+       ``initial``, ``final``, ``switch_time`` (not allowed with ``none``),
+       ``constitutive``
    * - ``[scenario]``
-     - ``type`` (``uniaxial_tension``, ``four_point_bending`` or
-       ``clamped_beam``) and the properties of that scenario in snake_case,
+     - ``type`` (``uniaxial_tension``, ``four_point_bending``,
+       ``clamped_beam`` or ``custom``, see below) and the properties of that scenario in snake_case,
        for example ``force_rate``, ``ramp_time``, ``load_position`` (``"midspan"``
        is allowed)
    * - ``[[monitor.node]]``
@@ -125,7 +128,117 @@ Rules of the format:
 options; ``ldem.Parameters.fromFile`` also accepts a case file. The list of
 keys lives in one table, ``ldem.schema.caseSchema``, which drives the reader,
 the writer and the template. To add a scenario, add a line to
-``ldem.scenarios.registry``.
+``ldem.scenarios.registry``. A new constitutive law is a subclass of
+``ldem.material.MaterialLaw`` registered in ``ldem.material.lawRegistry``; a new
+damping model is a subclass of ``ldem.solver.DampingModel`` registered in
+``ldem.solver.dampingRegistry``.
+
+Reuse a case: extends
+---------------------
+
+A case file can start from another one and change only what differs:
+
+.. code-block:: text
+
+   extends = "base.ldem"              # or a list: ["base.ldem", "material.ldem"]
+
+   [material]
+   fracture_energy = 1 N/m            # only what changes
+
+The keys of the file replace the inherited ones. A repeated table (``[[support]]``,
+``[[load]]``, ``[[monitor.node]]``, ``[[sweep]]``) replaces the whole inherited
+list. When the ``type`` of the scenario, of ``[material.scatter]`` or of
+``[damping]`` changes, the keys of the old type that are not set again are
+dropped. With a list, later files win. Relative paths (the random-field file, the
+output folder) are relative to the file that contains them, and an error names the
+file and line where the problem is written. ``results.info.case.parents`` keeps
+the hash of every inherited file.
+
+Parameter sweeps
+----------------
+
+To study how the result depends on a value, list the values in ``[[sweep]]``
+blocks and run ``ldem.sweep``:
+
+.. code-block:: text
+
+   [[sweep]]
+   key    = "material.fracture_energy"
+   values = ["0.1 N/m", "0.5 N/m", "1 N/m"]
+
+   [[sweep]]
+   key    = "time.duration"
+   values = ["20 us", "40 us"]
+
+.. code-block:: matlab
+
+   >> summary = ldem.sweep("case.ldem");                 % 3 x 2 = 6 runs, one folder each
+   >> ldem.sweep("case.ldem", DryRun=true);              % only validate and list the runs
+   >> ldem.sweep("case.ldem", Vary={"scenario.force_rate", ["1 kN/s" "2 kN/s"]});
+   >> results = ldem.run("case.ldem", Overrides=struct("path", "material.fracture_energy", "value", "2 N/m"));
+
+Several blocks give every combination; ``sweep_mode = "zip"`` (a key at the top of
+the file) takes them one by one. Any key with a single value can be varied, and
+the keys of the scenario as ``scenario.<key>``. Values are numbers or texts with
+units. Every run is validated before the first one starts. The runs go to
+``run_001``, ``run_002``, ... (each with its resolved ``case.ldem``) and the
+table ``sweep_summary.csv`` lists them, with the number of damaged and broken
+bars; a run that fails is recorded and the sweep goes on.
+
+Reference of every key
+----------------------
+
+The tables below are generated from ``ldem.schema.caseSchema``, the same table
+that the reader uses, so they always agree with it.
+
+.. include:: ../case-keys.inc
+
+Your own test: supports and loads
+---------------------------------
+
+With ``type = "custom"`` the test is described in the case file by
+``[[support]]`` and ``[[load]]`` blocks, without writing a class. This is the
+uniaxial test (``testId = 101``) as blocks:
+
+.. code-block:: text
+
+   [scenario]
+   type = "custom"
+
+   [[support]]
+   name = "left end"
+   x    = 0.5                 # the layer of centre nodes at x = 0.5 modules
+   fix  = ["x"]               # directions that cannot move
+
+   [[load]]
+   name          = "right end"
+   x             = "max - 0.5"
+   direction     = "x"
+   type          = "displacement"    # or "force"
+   time_function = "linear"
+   rate          = -4 mm/s
+   reaction      = true              # its force is the reaction of the test
+
+**Nodes** are chosen with ``nodes`` (``all``, ``grid`` for the corners of the
+modules or ``centre`` for their centres), ``ids`` (node numbers) and ``x``,
+``y``, ``z``. A position is in modules (centre nodes lie at half-integers, grid
+nodes at integers), a range ``[lo, hi]``, or a text with the references
+``min``, ``max`` and ``mid`` and an offset, such as ``"max - 0.5"``. A node must
+satisfy every condition. The positions refer to the regular lattice, so they do
+not change when ``mesh.perturbation`` moves the nodes.
+
+**Supports** hold the directions listed in ``fix``. **Loads** act on one
+``direction`` as a ``force`` (newtons on each selected node) or as a prescribed
+``displacement`` (metres from the initial position, and the solver holds that
+direction). The value follows ``time_function``: ``constant`` (``value``),
+``linear`` (``rate``), ``ramp`` (``rate`` until the time ``until``, then
+constant) or ``table`` (``times`` and ``values`` in SI units, linear between
+points and constant outside).
+
+A block with ``reaction = true`` adds its force to the reaction of the test
+(the sum of the bar forces on its held directions); with none, the reaction is
+NaN. A block that selects no node is an error that names it. The three built-in
+tests written this way give exactly the same results as their classes.
 
 Tests available
 ---------------

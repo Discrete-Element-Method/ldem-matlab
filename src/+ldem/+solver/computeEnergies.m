@@ -1,8 +1,10 @@
-function energy = computeEnergies(state, mesh, barProps, params)
+function energy = computeEnergies(state, mesh, barProps, params, law)
 %COMPUTEENERGIES  Energies of the system at the current state.
 %
 %   energy = ldem.solver.computeEnergies(state, mesh, barProps, params)
-%   returns the energies [J], all of them scalars.
+%   returns the energies [J], all of them scalars. The elastic, damage and
+%   broken-bar energies come from the constitutive law (ldem.material.MaterialLaw,
+%   by default the one named by params.constitutiveLaw; pass another as law).
 %
 %   Fields of energy:
 %
@@ -65,30 +67,21 @@ arguments
     mesh (1,1) struct
     barProps (1,1) struct
     params (1,1) ldem.Parameters
+    law = []
+end
+
+if isempty(law)
+    law = ldem.material.lawFromName(params.constitutiveLaw);
 end
 
 % Kinetic energy.
 kinetic = sum(ldem.solver.nodalKineticEnergy(state, mesh));
 
-% Elastic energy of the bars.
-E1 = barProps.stiffness;
-E2 = state.history.tensionStiffness;
-strain = state.strain;
-stiffness = E1;
-stiffness(strain >= 0.0) = E2(strain >= 0.0);
-elastic = sum(stiffness .* (strain .* strain .* mesh.barLength ./ 2));
-
-% Energy dissipated by damage.
-EP = barProps.criticalStrain;
-EM = state.history.maxStrain;
-damaged = ~state.history.isUndamaged;
-area = E1 .* EP .* EP - E2 .* EM .* EM + (E1 .* EP + E2 .* EM) .* (EM - EP);
-damage = sum(mesh.barLength(damaged) .* area(damaged) ./ 2);
-
-% Fracture energy of the bars that are completely broken.
-broken = damaged & ~state.history.isUnbroken;
-brokenBars = sum(E1(broken) .* EP(broken) .* EP(broken) .* barProps.ruptureRatio(broken) ...
-    .* mesh.barLength(broken) ./ 2);
+% Elastic, damage and fracture energy of the bars: they depend on the law.
+barEnergy = law.energies(state.strain, barProps, state.history, mesh.barLength);
+elastic = barEnergy.elastic;
+damage = barEnergy.damage;
+brokenBars = barEnergy.brokenBars;
 
 energy = struct();
 energy.time       = state.time;

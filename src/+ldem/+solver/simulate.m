@@ -70,6 +70,8 @@ arguments
 end
 
 ldem.solver.checkStability(mesh.barLength, params);
+law = ldem.material.lawFromName(params.constitutiveLaw);
+damping = ldem.solver.dampingFromName(params.dampingModel);
 
 nSteps = params.nSteps;
 controlEvery  = params.output.controlNodesEvery;
@@ -113,8 +115,8 @@ for step = 1:nSteps
     state.time = state.time + params.dt;
 
     state = scenario.applyLoads(state, mesh, params);
-    state = ldem.solver.computeBarForces(state, mesh, barProps, params);
-    state = ldem.solver.integrateStep(state, mesh, barProps, params);
+    state = ldem.solver.computeBarForces(state, mesh, barProps, params, law);
+    state = ldem.solver.integrateStep(state, mesh, barProps, params, law, damping);
 
     if ~all(isfinite(state.displacement), 'all')
         error('ldem:solver:nonFinite', ...
@@ -122,7 +124,7 @@ for step = 1:nSteps
              'step may be unstable or two nodes coincide.'], step, state.time);
     end
 
-    energy = ldem.solver.computeEnergies(state, mesh, barProps, params);
+    energy = ldem.solver.computeEnergies(state, mesh, barProps, params, law);
     state.previousDamageEnergy = energy.damage;
 
     if controlEvery > 0 && mod(step, controlEvery) == 0
@@ -150,7 +152,7 @@ for step = 1:nSteps
         record.trackedBar.criticalStrain(step) = barProps.criticalStrain(b);
         record.trackedBar.ruptureStrain(step)  = barProps.ruptureStrain(b);
         record.trackedBar.force(step)          = state.axialForce(b);
-        record.trackedBar.damageEnergy(step)   = trackedDamageEnergy(state, mesh, barProps, b);
+        record.trackedBar.damageEnergy(step)   = law.barDamageEnergy(b, barProps, state.history, mesh.barLength);
     end
 
     if snapshotEvery > 0 && mod(step, snapshotEvery) == 0 && ~isempty(options.SnapshotFcn)
@@ -161,18 +163,4 @@ for step = 1:nSteps
         fprintf('  step %d / %d  (t = %.4g s)\n', step, nSteps, state.time);
     end
 end
-end
-
-function value = trackedDamageEnergy(state, mesh, barProps, b)
-%TRACKEDDAMAGEENERGY  Energy dissipated by damage in one bar (zero if undamaged).
-if state.history.isUndamaged(b)
-    value = 0.0;
-    return
-end
-E1 = barProps.stiffness(b);
-E2 = state.history.tensionStiffness(b);
-EP = barProps.criticalStrain(b);
-EM = state.history.maxStrain(b);
-area = E1 * EP * EP - E2 * EM * EM + (E1 * EP + E2 * EM) * (EM - EP);
-value = mesh.barLength(b) * area / 2;
 end

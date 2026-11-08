@@ -57,6 +57,16 @@ classdef Parameters
         % the stiffness [s]. Legacy: CON.
         constitutiveDamping (1,1) double {mustBeNonnegative, mustBeFinite} = 0
 
+        % Constitutive law of the bars: a name of ldem.material.lawRegistry
+        % ("bilinear", the legacy law, or "linear_elastic"). Checked by
+        % validate().
+        constitutiveLaw (1,1) string = "bilinear"
+
+        % Damping model of the nodes: a name of ldem.solver.dampingRegistry
+        % ("mass_proportional", the legacy damping, or "none"). Checked by
+        % validate().
+        dampingModel (1,1) string = "mass_proportional"
+
         % Integration time step [s]. Legacy: DT.
         dt (1,1) double {mustBePositive, mustBeFinite} = 2e-7
 
@@ -178,6 +188,18 @@ classdef Parameters
             if obj.poissonRatio >= 0.5
                 error('ldem:params:badPoissonRatio', ...
                     'poissonRatio must be smaller than 0.5, got %g.', obj.poissonRatio);
+            end
+
+            % The law and the damping model must be registered.
+            if ~any([ldem.material.lawRegistry().name] == lower(obj.constitutiveLaw))
+                error('ldem:params:unknownLaw', ...
+                    'constitutiveLaw "%s" does not exist. Available: %s.', obj.constitutiveLaw, ...
+                    strjoin([ldem.material.lawRegistry().name], ', '));
+            end
+            if ~any([ldem.solver.dampingRegistry().name] == lower(obj.dampingModel))
+                error('ldem:params:unknownDampingModel', ...
+                    'dampingModel "%s" does not exist. Available: %s.', obj.dampingModel, ...
+                    strjoin([ldem.solver.dampingRegistry().name], ', '));
             end
 
             % Control nodes must exist and be few.

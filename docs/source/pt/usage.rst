@@ -96,7 +96,8 @@ Regras do formato:
      - ``module_size``, ``modules``, ``perturbation`` (deslocamento aleatório
        dos nós, fração do módulo), ``seed`` (da perturbação)
    * - ``[material]``
-     - ``law``, ``young_modulus``, ``poisson_ratio``, ``density``,
+     - ``law`` (``bilinear``, a lei original, ou ``linear_elastic``: sem dano nem
+       ruptura), ``young_modulus``, ``poisson_ratio``, ``density``,
        ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
    * - ``[material.scatter]``
      - Dispersão da deformação crítica das barras. ``type = "none"``;
@@ -106,10 +107,12 @@ Regras do formato:
    * - ``[time]``
      - ``step`` (ou ``auto``), ``duration``
    * - ``[damping]``
-     - ``type``, ``initial``, ``final``, ``switch_time``, ``constitutive``
+     - ``type`` (``mass_proportional``, o amortecimento original, ou ``none``),
+       ``initial``, ``final``, ``switch_time`` (não aceitos com ``none``),
+       ``constitutive``
    * - ``[scenario]``
-     - ``type`` (``uniaxial_tension``, ``four_point_bending`` ou
-       ``clamped_beam``) e as propriedades desse cenário em snake_case, por
+     - ``type`` (``uniaxial_tension``, ``four_point_bending``,
+       ``clamped_beam`` ou ``custom``, veja abaixo) e as propriedades desse cenário em snake_case, por
        exemplo ``force_rate``, ``ramp_time``, ``load_position`` (é aceito
        ``"midspan"``)
    * - ``[[monitor.node]]``
@@ -128,7 +131,121 @@ Regras do formato:
 ``ldem.Parameters.fromFile`` também aceita um arquivo de caso. A lista de chaves
 está em uma única tabela, ``ldem.schema.caseSchema``, que governa o leitor, o
 escritor e o modelo. Para adicionar um cenário, adiciona-se uma linha a
-``ldem.scenarios.registry``.
+``ldem.scenarios.registry``. Uma nova lei constitutiva é uma subclasse de
+``ldem.material.MaterialLaw`` registrada em ``ldem.material.lawRegistry``; um novo
+modelo de amortecimento, uma subclasse de ``ldem.solver.DampingModel`` registrada
+em ``ldem.solver.dampingRegistry``.
+
+Reutilizar um caso: extends
+---------------------------
+
+Um arquivo de caso pode partir de outro e mudar só o que difere:
+
+.. code-block:: text
+
+   extends = "base.ldem"              # or a list: ["base.ldem", "material.ldem"]
+
+   [material]
+   fracture_energy = 1 N/m            # only what changes
+
+As chaves do arquivo substituem as herdadas. Uma tabela repetida
+(``[[support]]``, ``[[load]]``, ``[[monitor.node]]``, ``[[sweep]]``) substitui
+toda a lista herdada. Quando muda o ``type`` do cenário, de
+``[material.scatter]`` ou de ``[damping]``, as chaves do tipo anterior que não
+são definidas de novo são descartadas. Com uma lista, os últimos arquivos
+vencem. Os caminhos relativos (arquivo do campo aleatório, pasta de saída) são
+relativos ao arquivo que os contém, e um erro indica o arquivo e a linha onde o
+problema está escrito. ``results.info.case.parents`` guarda o hash de cada
+arquivo herdado.
+
+Varreduras de parâmetros
+------------------------
+
+Para estudar como o resultado depende de um valor, listam-se os valores em
+blocos ``[[sweep]]`` e executa-se ``ldem.sweep``:
+
+.. code-block:: text
+
+   [[sweep]]
+   key    = "material.fracture_energy"
+   values = ["0.1 N/m", "0.5 N/m", "1 N/m"]
+
+   [[sweep]]
+   key    = "time.duration"
+   values = ["20 us", "40 us"]
+
+.. code-block:: matlab
+
+   >> summary = ldem.sweep("case.ldem");                 % 3 x 2 = 6 runs, one folder each
+   >> ldem.sweep("case.ldem", DryRun=true);              % only validate and list the runs
+   >> ldem.sweep("case.ldem", Vary={"scenario.force_rate", ["1 kN/s" "2 kN/s"]});
+   >> results = ldem.run("case.ldem", Overrides=struct("path", "material.fracture_energy", "value", "2 N/m"));
+
+Vários blocos dão todas as combinações; ``sweep_mode = "zip"`` (uma chave no
+início do arquivo) toma-os um a um. Pode-se variar qualquer chave de valor
+único, e as do cenário como ``scenario.<chave>``. Os valores são números ou
+textos com unidades. Cada execução é validada antes de começar a primeira. As
+execuções vão para ``run_001``, ``run_002``, ... (cada uma com o seu
+``case.ldem`` resolvido) e a tabela ``sweep_summary.csv`` as lista, com o número
+de barras danificadas e rompidas; uma execução que falha fica registrada e a
+varredura continua.
+
+Referência de todas as chaves
+-----------------------------
+
+As tabelas a seguir são geradas a partir de ``ldem.schema.caseSchema``, a mesma
+tabela que o leitor usa, portanto sempre coincidem com ele. As descrições estão
+em inglês.
+
+.. include:: ../case-keys.inc
+
+O seu próprio ensaio: apoios e cargas
+--------------------------------------
+
+Com ``type = "custom"`` o ensaio é descrito no arquivo de caso com blocos
+``[[support]]`` e ``[[load]]``, sem escrever uma classe. Este é o ensaio
+uniaxial (``testId = 101``) como blocos:
+
+.. code-block:: text
+
+   [scenario]
+   type = "custom"
+
+   [[support]]
+   name = "left end"
+   x    = 0.5                 # the layer of centre nodes at x = 0.5 modules
+   fix  = ["x"]               # directions that cannot move
+
+   [[load]]
+   name          = "right end"
+   x             = "max - 0.5"
+   direction     = "x"
+   type          = "displacement"    # or "force"
+   time_function = "linear"
+   rate          = -4 mm/s
+   reaction      = true              # its force is the reaction of the test
+
+Os **nós** são escolhidos com ``nodes`` (``all``, ``grid`` para os cantos dos
+módulos ou ``centre`` para os seus centros), ``ids`` (números de nó) e ``x``,
+``y``, ``z``. Uma posição é em módulos (os nós centrais ficam em semi-inteiros,
+os de canto em inteiros), um intervalo ``[lo, hi]``, ou um texto com as
+referências ``min``, ``max`` e ``mid`` e um deslocamento, como ``"max - 0.5"``.
+Um nó deve satisfazer todas as condições. As posições referem-se à malha
+regular, portanto não mudam quando ``mesh.perturbation`` move os nós.
+
+Os **apoios** fixam as direções de ``fix``. As **cargas** atuam em uma
+``direction`` como ``force`` (newtons em cada nó escolhido) ou como
+``displacement`` imposto (metros a partir da posição inicial; o solver fixa essa
+direção). O valor segue ``time_function``: ``constant`` (``value``), ``linear``
+(``rate``), ``ramp`` (``rate`` até o tempo ``until``, depois constante) ou
+``table`` (``times`` e ``values`` em unidades SI, linear entre pontos e constante
+fora).
+
+Um bloco com ``reaction = true`` soma sua força à reação do ensaio (a soma das
+forças de barra nas suas direções fixas); se nenhum a pedir, a reação é NaN. Um
+bloco que não escolhe nenhum nó é um erro que o nomeia. Os três ensaios
+incorporados escritos assim dão exatamente os mesmos resultados que as suas
+classes.
 
 Ensaios disponíveis
 -------------------

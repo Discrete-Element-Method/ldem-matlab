@@ -407,7 +407,7 @@ classdef TestReadCase < LdemTestCase
             schema = ldem.schema.caseSchema();
             testCase.verifyEqual(numel(unique(string({schema.path}))), numel(schema));
             kinds = ["integer" "number" "quantity" "string" "stringlist" "path" "intlist" ...
-                "numberlist" "bool" "enum" "stepOrAuto" "cadence"];
+                "numberlist" "bool" "enum" "stepOrAuto" "cadence" "coordinate" "loadQuantity"];
             props = string(properties('ldem.Parameters'));
             for row = schema.'
                 testCase.verifyTrue(any(row.kind == kinds), row.path);

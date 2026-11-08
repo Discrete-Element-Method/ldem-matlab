@@ -15,6 +15,7 @@ function [names, exps] = unitTable(dimension)
 %     toughness  N/m, kN/m          (fracture energy)
 %     velocity   m/s, mm/s
 %     forcerate  N/s, kN/s
+%     force      N, kN, MN
 %     modules    modules            (length in module lengths)
 %     number     no unit
 %
@@ -62,6 +63,9 @@ switch dimension
     case "forcerate"
         names = ["N/s" "kN/s"];
         exps  = [0 3];
+    case "force"
+        names = ["N" "kN" "MN"];
+        exps  = [0 3 6];
     case "modules"
         names = "modules";
         exps  = 0;

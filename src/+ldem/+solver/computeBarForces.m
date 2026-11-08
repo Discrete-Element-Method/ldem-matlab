@@ -1,4 +1,4 @@
-function state = computeBarForces(state, mesh, barProps, params)
+function state = computeBarForces(state, mesh, barProps, params, law)
 %COMPUTEBARFORCES  Axial force of every bar and resulting nodal forces.
 %
 %   state = ldem.solver.computeBarForces(state, mesh, barProps, params)
@@ -17,6 +17,7 @@ function state = computeBarForces(state, mesh, barProps, params)
 %     mesh      Struct from ldem.mesh.buildMesh.
 %     barProps  Struct from ldem.material.buildBarProperties.
 %     params    ldem.Parameters.
+%     law       Optional ldem.material.MaterialLaw (default: the one named by params.constitutiveLaw).
 %
 %   Output:
 %     state  The input state with force, strain, strainRate, axialForce and
@@ -28,13 +29,18 @@ function state = computeBarForces(state, mesh, barProps, params)
 %
 %   Legacy: CABAR.
 %
-%   See also ldem.material.bilinearLaw, ldem.solver.integrateStep.
+%   See also ldem.material.MaterialLaw, ldem.material.bilinearLaw, ldem.solver.integrateStep.
 
 arguments
     state (1,1) struct
     mesh (1,1) struct
     barProps (1,1) struct
     params (1,1) ldem.Parameters
+    law = []
+end
+
+if isempty(law)
+    law = ldem.material.lawFromName(params.constitutiveLaw);
 end
 
 first  = mesh.bars(:, 1);
@@ -61,8 +67,7 @@ strain     = (currentLength  - initialLength) ./ initialLength;
 oldStrain  = (previousLength - initialLength) ./ initialLength;
 strainRate = (strain - oldStrain) / params.dt;
 
-[axialForce, history] = ldem.material.bilinearLaw( ...
-    strain, strainRate, barProps, state.history, params.constitutiveDamping);
+[axialForce, history] = law.evaluate(strain, strainRate, barProps, state.history, params);
 
 % Add the bar forces to the nodes. The contributions are listed bar by bar
 % (start node +, end node -) so that, for every node, they are summed in the

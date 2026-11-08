@@ -1,4 +1,4 @@
-function c = readCase(path)
+function c = readCase(path, options)
 %READCASE  Read a case file (.ldem or .json) and build the simulation inputs.
 %
 %   c = ldem.io.readCase(path) reads a case file, checks every key against
@@ -24,15 +24,25 @@ function c = readCase(path)
 %   Relative paths (the random-field file and the output folder) are relative
 %   to the folder of the case file.
 %
+%   A case file may inherit from others with extends = "base.ldem" (or a list):
+%   its keys replace the inherited ones, a repeated table ([[support]], [[load]],
+%   [[monitor.node]], [[sweep]]) replaces the whole inherited list, and when the
+%   scenario, scatter or damping type changes the keys of the old type are dropped.
+%   Relative paths are relative to the file that contains them.
+%
 %   Input:
 %     path  Path of a .ldem file or of a .json file with the same structure.
+%
+%   Name-value options:
+%     Overrides  Struct array with the fields path ("section.key") and value that
+%                replace keys of the file; ldem.sweep uses it to vary a key.
 %
 %   Output:
 %     c  Struct with the fields
 %          params    Validated ldem.Parameters.
 %          scenario  Scenario object with the values of the [scenario] section.
 %          options   Struct with OutputFolder and Formats, for runSimulation.
-%          info      Struct: source, format, title, authors, controlNodeNames and nodeNotes.
+%          info      Struct: source, format, title, authors, controlNodeNames, nodeNotes, parents, sweep, sweepMode.
 %
 %   Errors:
 %     ldem:io:fileNotFound        The file does not exist.
@@ -54,6 +64,7 @@ function c = readCase(path)
 
 arguments
     path (1,1) string
+    options.Overrides = []
 end
 
 if ~isfile(path)
@@ -63,16 +74,8 @@ absPath = absolutePath(path);
 [folder, name, ext] = fileparts(absPath);
 ctx = struct('source', string(name) + string(ext), 'folder', string(folder));
 
-text = string(fileread(absPath));
-switch lower(string(ext))
-    case ".ldem"
-        entries = ldem.io.parseCaseText(text, ctx.source);
-    case ".json"
-        entries = ldem.io.parseCaseJson(text, ctx.source);
-    otherwise
-        error('ldem:io:unknownExtension', ...
-            'Case files must be .ldem or .json, got "%s".', ext);
-end
+[entries, parents] = loadEntries(absPath, strings(0, 1));
+entries = applyOverrides(entries, options.Overrides, ctx);
 
 schema = ldem.schema.caseSchema();
 reg = ldem.scenarios.registry();
@@ -86,8 +89,8 @@ values = struct();
 origin = struct();
 [values, origin] = readSimpleKeys(values, origin, entries, schema, ctx);
 [values, origin] = readModules(values, origin, entries, ctx);
-readEnum(entries, schema, "material.law", ctx);
-readEnum(entries, schema, "damping.type", ctx);
+[values, origin] = readEnumKeys(values, origin, entries, schema, ctx);
+checkDampingKeys(entries, values, ctx);
 checkScatter(entries, schema, ctx);
 
 % Time step: explicit, or "auto" (also when the key is absent).
@@ -144,6 +147,8 @@ catch err
     error(err.identifier, '%s', char(ctx.source + ": " + string(err.message)));
 end
 
+[sweepBlocks, sweepMode] = readSweep(entries, schema, ctx);
+
 c = struct();
 c.params = p;
 c.scenario = scenario;
@@ -151,7 +156,203 @@ c.options = readOutputOptions(entries, output, ctx);
 c.info = struct('source', string(absPath), 'format', 1, ...
     'title', stringValue(entries, "", "title", ""), ...
     'authors', stringValue(entries, "", "authors", strings(1, 0)), ...
-    'controlNodeNames', names, 'nodeNotes', nodeNotes);
+    'controlNodeNames', names, 'nodeNotes', nodeNotes, ...
+    'parents', parents, 'sweep', sweepBlocks, 'sweepMode', sweepMode);
+end
+
+% ------------------------------------------------------------------------
+
+function [entries, parents] = loadEntries(absPath, chain)
+%LOADENTRIES  Entries of a case file with the ones it inherits through "extends".
+%   Every entry also carries the file it was written in (file) and its folder
+%   (folder), for the error messages and for relative paths.
+[folder, name, ext] = fileparts(absPath);
+source = string(name) + string(ext);
+text = string(fileread(absPath));
+switch lower(string(ext))
+    case ".ldem"
+        entries = ldem.io.parseCaseText(text, source);
+    case ".json"
+        entries = ldem.io.parseCaseJson(text, source);
+    otherwise
+        error('ldem:io:unknownExtension', ...
+            'Case files must be .ldem or .json, got "%s".', ext);
+end
+if isempty(entries)
+    entries = struct('section', {}, 'index', {}, 'key', {}, 'value', {}, 'line', {}, ...
+        'file', {}, 'folder', {});
+else
+    for k = 1:numel(entries)
+        entries(k).file = source;
+        entries(k).folder = string(folder);
+    end
+end
+
+parents = strings(0, 1);
+eExtends = findEntry(entries, "", "extends");
+if isempty(eExtends)
+    return
+end
+entries(string({entries.section}) == "" & string({entries.key}) == "extends") = [];
+
+where = source + ":" + string(eExtends.line) + " extends";
+if ~(isstring(eExtends.value) && ~isempty(eExtends.value))
+    ldem.schema.raise('ldem:case:badValue', where, ...
+        'Expected the path of a case file or a list of them, in quotes.');
+end
+chain = [chain; string(absPath)];
+merged = entries([]);
+for relative = reshape(eExtends.value, 1, [])
+    parentPath = relative;
+    if isempty(regexp(parentPath, '^([A-Za-z]:|[\\/])', 'once'))
+        parentPath = joinPath(folder, parentPath);
+    end
+    if ~isfile(parentPath)
+        ldem.schema.raise('ldem:io:fileNotFound', where, ...
+            'The case file "%s" that this one extends does not exist.', relative);
+    end
+    parentPath = absolutePath(parentPath);
+    if any(lower(chain) == lower(parentPath))
+        ldem.schema.raise('ldem:case:extendsLoop', where, ...
+            'Case files extend each other in a loop: %s.', strjoin([chain; parentPath], ' -> '));
+    end
+    [parentEntries, grandParents] = loadEntries(parentPath, chain);
+    merged = mergeEntries(merged, parentEntries);
+    parents = [parents; grandParents; parentPath]; %#ok<AGROW>
+end
+entries = mergeEntries(merged, entries);
+parents = unique(parents, 'stable');
+end
+
+function merged = mergeEntries(base, over)
+%MERGEENTRIES  Entries of "over" replace those of "base" that set the same thing.
+%   A key replaces the same key; a repeated table ([[support]], [[load]],
+%   [[monitor.node]], [[sweep]]) replaces the whole list of that table; and when
+%   the type of the scenario, of the scatter or of the damping model changes, the
+%   keys of the old type that are not set again are dropped.
+if isempty(base)
+    merged = over;
+    return
+end
+baseSections = string({base.section});
+baseKeys = string({base.key});
+baseIndices = [base.index];
+overSections = string({over.section});
+overKeys = string({over.key});
+overIndices = [over.index];
+
+drop = false(size(base));
+for k = 1:numel(base)
+    if baseIndices(k) == 0
+        drop(k) = any(overSections == baseSections(k) & overKeys == baseKeys(k) & overIndices == 0);
+    else
+        drop(k) = any(overSections == baseSections(k) & overIndices > 0);
+    end
+end
+for section = ["scenario" "material.scatter" "damping"]
+    newType = typeOf(over, section);
+    oldType = typeOf(base, section);
+    if newType ~= "" && oldType ~= "" && newType ~= oldType
+        drop = drop | (baseSections == section & baseKeys ~= "type");
+    end
+end
+merged = [base(~drop), over];
+end
+
+function word = typeOf(entries, section)
+e = findEntry(entries, section, "type");
+if isempty(e) || ~isstring(e.value) || ~isscalar(e.value)
+    word = "";
+else
+    word = lower(strtrim(e.value));
+end
+end
+
+function entries = applyOverrides(entries, overrides, ctx)
+%APPLYOVERRIDES  Set keys from outside the file (a sweep): struct array with path and value.
+if isempty(overrides)
+    return
+end
+schema = ldem.schema.caseSchema();
+paths = string({schema.path});
+for k = 1:numel(overrides)
+    target = string(overrides(k).path);
+    section = sectionOf(target);
+    key = keyOf(target);
+    if ~any(paths == target) && section ~= "scenario"
+        ldem.schema.raise('ldem:sweep:unknownKey', "sweep", ...
+            'The key "%s" does not exist.%s', target, ldem.schema.suggest(target, paths));
+    end
+    if any(section == arrayTables())
+        ldem.schema.raise('ldem:sweep:unsupportedKey', "sweep", ...
+            'The key "%s" belongs to a repeated table and cannot be swept.', target);
+    end
+    if ~isempty(entries)
+        entries(string({entries.section}) == section & string({entries.key}) == key ...
+            & [entries.index] == 0) = [];
+    end
+    entry = struct('section', section, 'index', 0, 'key', key, 'value', {overrides(k).value}, ...
+        'line', 0, 'file', "sweep", 'folder', ctx.folder);
+    if isempty(entries)
+        entries = entry;
+    else
+        entries = [entries, entry]; %#ok<AGROW>
+    end
+end
+end
+
+function tables = arrayTables()
+tables = ["monitor.node" "support" "load" "sweep"];
+end
+
+function [blocks, mode] = readSweep(entries, schema, ctx)
+%READSWEEP  The [[sweep]] blocks and sweep_mode: what ldem.sweep varies.
+blocks = struct('key', {}, 'values', {});
+paths = string({schema.path});
+kinds = string({schema.kind});
+scalarKinds = ["integer" "number" "quantity" "string" "path" "enum" "stepOrAuto" "cadence"];
+sections = string({entries.section});
+indices = [entries.index];
+for k = unique(indices(sections == "sweep"))
+    block = entries(sections == "sweep" & indices == k);
+    if k == 0
+        ldem.schema.raise('ldem:case:syntax', location(block(1), ctx), ...
+            'Write [[sweep]] (double brackets): there can be several.');
+    end
+    eKey = pickKey(block, "key");
+    eValues = pickKey(block, "values");
+    if isempty(eKey) || isempty(eValues)
+        ldem.schema.raise('ldem:case:missingKey', location(block(1), ctx), ...
+            'A [[sweep]] needs "key" (what to vary) and "values" (a list).');
+    end
+    if ~(isstring(eKey.value) && isscalar(eKey.value))
+        ldem.schema.raise('ldem:case:badValue', location(eKey, ctx), ...
+            'Expected the name of a key in quotes, such as "material.fracture_energy".');
+    end
+    target = eKey.value;
+    j = find(paths == target, 1);
+    isScenarioKey = sectionOf(target) == "scenario" && keyOf(target) ~= "type";
+    if isempty(j) && ~isScenarioKey
+        ldem.schema.raise('ldem:case:badValue', location(eKey, ctx), ...
+            '"%s" is not a key of the case file.%s', target, ldem.schema.suggest(target, paths));
+    end
+    if ~isScenarioKey && (~any(kinds(j) == scalarKinds) || any(sectionOf(target) == arrayTables()))
+        ldem.schema.raise('ldem:case:badValue', location(eKey, ctx), ...
+            '"%s" cannot be swept: only keys with a single value and outside repeated tables.', target);
+    end
+    v = eValues.value;
+    if isempty(v) || ~((isnumeric(v) || isstring(v)) && isvector(v))
+        ldem.schema.raise('ldem:case:badValue', location(eValues, ctx), ...
+            'Expected a non-empty list of numbers or of quoted texts such as ["0.1 N/m", "0.5 N/m"].');
+    end
+    items = num2cell(reshape(v, 1, []));
+    blocks(end+1) = struct('key', target, 'values', {items}); %#ok<AGROW>
+end
+mode = "product";
+eMode = findEntry(entries, "", "sweep_mode");
+if ~isempty(eMode)
+    mode = enumWord(eMode, ["product" "zip"], ctx);
+end
 end
 
 % ------------------------------------------------------------------------
@@ -207,7 +408,9 @@ for row = schema.'
         continue
     end
     where = location(e, ctx);
-    values.(row.prop) = convertValue(e.value, row, where, ctx);
+    entryCtx = ctx;
+    entryCtx.folder = e.folder;
+    values.(row.prop) = convertValue(e.value, row, where, entryCtx);
     origin.(row.prop) = where;
 end
 end
@@ -240,7 +443,7 @@ switch row.kind
                 'Expected a path in quotes, found %s.', describe(v));
         end
         if isempty(regexp(v, '^([A-Za-z]:|[\\/])', 'once')) && strlength(v) > 0
-            value = string(fullfile(ctx.folder, v));
+            value = joinPath(ctx.folder, v);   % ctx.folder is the folder of the entry's file
         else
             value = v;
         end
@@ -257,6 +460,34 @@ if ~(isnumeric(v) && numel(v) == 3 && all(v >= 1) && all(v == fix(v)))
 end
 values.nModules = reshape(v, 1, 3) + 1;     % the legacy M N L count nodes
 origin.nModules = where;
+end
+
+function [values, origin] = readEnumKeys(values, origin, entries, schema, ctx)
+%READENUMKEYS  Enum keys that set a Parameters property (the law, the damping model).
+for row = schema(string({schema.kind}) == "enum" & string({schema.prop}) ~= "").'
+    word = readEnum(entries, schema, row.path, ctx);
+    if word ~= ""
+        values.(row.prop) = word;
+        origin.(row.prop) = location(findEntry(entries, sectionOf(row.path), keyOf(row.path)), ctx);
+    end
+end
+end
+
+function checkDampingKeys(entries, values, ctx)
+%CHECKDAMPINGKEYS  Keys of [damping] that the chosen model does not use are an error.
+reg = ldem.solver.dampingRegistry();
+model = "mass_proportional";
+if isfield(values, 'dampingModel')
+    model = values.dampingModel;
+end
+spec = reg([reg.name] == model);
+for key = ["initial" "final" "switch_time"]
+    e = findEntry(entries, "damping", key);
+    if ~isempty(e) && ~any(spec.keys == key)
+        ldem.schema.raise('ldem:case:inconsistentKey', location(e, ctx), ...
+            'The key "%s" does not apply when type = "%s".', key, model);
+    end
+end
 end
 
 function word = readEnum(entries, schema, path, ctx)
@@ -416,7 +647,181 @@ catch err
     ldem.schema.raise('ldem:case:invalidValue', location(eType, ctx) + " (scenario)", ...
         '%s', firstLine(err.message));
 end
+if name == "custom"
+    scenario = readBlocks(entries, ctx);
+else
+    for e = entries
+        if any(e.section == ["support" "load"])
+            ldem.schema.raise('ldem:case:inconsistentKey', location(e, ctx), ...
+                '[[%s]] blocks only apply when [scenario] type = "custom".', e.section);
+        end
+    end
+end
 testId = spec.testId;
+end
+
+function scenario = readBlocks(entries, ctx)
+%READBLOCKS  Build the declarative scenario from the [[support]] and [[load]] blocks.
+supports = ldem.scenarios.Declarative.emptySupports();
+loads = ldem.scenarios.Declarative.emptyLoads();
+sections = string({entries.section});
+indices = [entries.index];
+for kind = ["support" "load"]
+    for k = unique(indices(sections == kind))
+        block = entries(sections == kind & indices == k);
+        if k == 0
+            ldem.schema.raise('ldem:case:syntax', location(block(1), ctx), ...
+                'Write [[%s]] (double brackets): there can be several.', kind);
+        end
+        if kind == "support"
+            supports(end+1) = readSupport(block, ctx); %#ok<AGROW>
+        else
+            loads(end+1) = readLoad(block, ctx); %#ok<AGROW>
+        end
+    end
+end
+try
+    scenario = ldem.scenarios.Declarative(supports = supports, loads = loads);
+catch err
+    ldem.schema.raise('ldem:case:invalidValue', ctx.source + " [scenario]", '%s', firstLine(err.message));
+end
+end
+
+function block = readSupport(entries, ctx)
+selector = readSelector(entries, ctx);
+eFix = pickKey(entries, "fix");
+if isempty(eFix)
+    ldem.schema.raise('ldem:case:missingKey', location(entries(1), ctx), ...
+        'A [[support]] needs "fix": the directions to hold, for example ["x", "y"].');
+end
+try
+    block = ldem.scenarios.Declarative.makeSupport(selector, reshape(string(eFix.value), 1, []), ...
+        name = textOf(entries, "name", ctx), reaction = boolOf(entries, "reaction", ctx));
+catch err
+    ldem.schema.raise('ldem:case:badValue', location(eFix, ctx), '%s', firstLine(err.message));
+end
+end
+
+function block = readLoad(entries, ctx)
+selector = readSelector(entries, ctx);
+for key = ["direction" "type" "time_function"]
+    if isempty(pickKey(entries, key))
+        ldem.schema.raise('ldem:case:missingKey', location(entries(1), ctx), ...
+            'A [[load]] needs "%s".', key);
+    end
+end
+direction = enumWord(pickKey(entries, "direction"), ["x" "y" "z"], ctx);
+type = enumWord(pickKey(entries, "type"), ["force" "displacement"], ctx);
+kind = enumWord(pickKey(entries, "time_function"), ["constant" "linear" "ramp" "table"], ctx);
+
+if type == "force"
+    valueDimension = "force";
+    rateDimension = "forcerate";
+else
+    valueDimension = "length";
+    rateDimension = "velocity";
+end
+needs = struct('constant', "value", 'linear', "rate", 'ramp', ["rate" "until"], ...
+    'table', ["times" "values"]);
+needed = needs.(kind);
+for key = ["value" "rate" "until" "times" "values"]
+    e = pickKey(entries, key);
+    if ~isempty(e) && ~any(needed == key)
+        ldem.schema.raise('ldem:case:inconsistentKey', location(e, ctx), ...
+            'The key "%s" does not apply when time_function = "%s".', key, kind);
+    end
+    if isempty(e) && any(needed == key)
+        ldem.schema.raise('ldem:case:missingKey', location(entries(1), ctx), ...
+            'time_function = "%s" needs the key "%s".', kind, key);
+    end
+end
+args = struct();
+for key = needed
+    e = pickKey(entries, key);
+    where = location(e, ctx);
+    switch key
+        case "value"
+            args.value = ldem.schema.parseQuantity(e.value, valueDimension, where);
+        case "rate"
+            args.rate = ldem.schema.parseQuantity(e.value, rateDimension, where);
+        case "until"
+            args.until = ldem.schema.parseQuantity(e.value, "time", where);
+        otherwise
+            if ~(isnumeric(e.value) && ~isempty(e.value))
+                ldem.schema.raise('ldem:case:badValue', where, ...
+                    'Expected a list of numbers (SI units), found %s.', describe(e.value));
+            end
+            args.(key) = reshape(e.value, 1, []);
+    end
+end
+try
+    argList = namedargs2cell(args);
+    fn = ldem.scenarios.Declarative.makeFunction(kind, argList{:});
+catch err
+    ldem.schema.raise('ldem:case:badValue', location(pickKey(entries, "time_function"), ctx), ...
+        '%s', firstLine(err.message));
+end
+block = ldem.scenarios.Declarative.makeLoad(selector, direction, type, fn, ...
+    name = textOf(entries, "name", ctx), reaction = boolOf(entries, "reaction", ctx));
+end
+
+function selector = readSelector(entries, ctx)
+args = struct();
+e = pickKey(entries, "nodes");
+if ~isempty(e)
+    args.nodes = enumWord(e, ["all" "centre" "grid"], ctx);
+end
+e = pickKey(entries, "ids");
+if ~isempty(e)
+    if ~(isnumeric(e.value) && ~isempty(e.value) && all(e.value >= 1) && all(e.value == fix(e.value)))
+        ldem.schema.raise('ldem:case:badValue', location(e, ctx), ...
+            'Expected node numbers (integers >= 1), found %s.', describe(e.value));
+    end
+    args.ids = reshape(e.value, 1, []);
+end
+for axis = ["x" "y" "z"]
+    e = pickKey(entries, axis);
+    if ~isempty(e)
+        ldem.scenarios.parseCoordinate(e.value, location(e, ctx));    % checks the form
+        args.(axis) = e.value;
+    end
+end
+argList = namedargs2cell(args);
+selector = ldem.scenarios.Declarative.makeSelector(argList{:});
+end
+
+function e = pickKey(entries, key)
+%PICKKEY  The entry of a key inside one block, or [].
+k = find(string({entries.key}) == key, 1);
+if isempty(k)
+    e = [];
+else
+    e = entries(k);
+end
+end
+
+function text = textOf(entries, key, ctx)
+e = pickKey(entries, key);
+if isempty(e)
+    text = "";
+elseif isstring(e.value) && isscalar(e.value)
+    text = e.value;
+else
+    ldem.schema.raise('ldem:case:badValue', location(e, ctx), ...
+        'Expected a text in quotes, found %s.', describe(e.value));
+end
+end
+
+function flag = boolOf(entries, key, ctx)
+e = pickKey(entries, key);
+if isempty(e)
+    flag = false;
+elseif islogical(e.value) && isscalar(e.value)
+    flag = e.value;
+else
+    ldem.schema.raise('ldem:case:badValue', location(e, ctx), ...
+        'Expected true or false, found %s.', describe(e.value));
+end
 end
 
 function items = readNodeItems(entries, ctx)
@@ -494,7 +899,7 @@ else
             'Expected a folder name in quotes, found %s.', describe(folder));
     end
     if strlength(folder) > 0 && isempty(regexp(folder, '^([A-Za-z]:|[\\/])', 'once'))
-        folder = string(fullfile(ctx.folder, folder));
+        folder = joinPath(eFolder.folder, folder);
     end
 end
 formats = strings(1, 0);
@@ -589,6 +994,9 @@ end
 function w = location(e, ctx)
 %LOCATION  "file:line [section] key" for the error messages.
 w = ctx.source;
+if isfield(e, 'file') && e.file ~= ""
+    w = e.file;
+end
 if e.line > 0
     w = w + ":" + string(e.line);
 end
@@ -631,6 +1039,23 @@ end
 
 function line = firstLine(message)
 line = strtok(string(message), newline);
+end
+
+function p = joinPath(folder, relative)
+%JOINPATH  Folder plus a relative path, with the "." and ".." parts removed.
+full = strrep(string(fullfile(folder, relative)), '/', filesep);
+parts = split(full, filesep).';
+kept = strings(1, 0);
+for part = parts
+    if part == "."
+        continue
+    elseif part == ".." && ~isempty(kept) && kept(end) ~= "" && ~endsWith(kept(end), ":")
+        kept(end) = [];
+    else
+        kept(end+1) = part; %#ok<AGROW>
+    end
+end
+p = strjoin(kept, filesep);
 end
 
 function p = absolutePath(path)

@@ -95,7 +95,8 @@ Regole del formato:
      - ``module_size``, ``modules``, ``perturbation`` (spostamento casuale dei
        nodi, frazione del modulo), ``seed`` (della perturbazione)
    * - ``[material]``
-     - ``law``, ``young_modulus``, ``poisson_ratio``, ``density``,
+     - ``law`` (``bilinear``, la legge originale, o ``linear_elastic``: senza danno né
+       rottura), ``young_modulus``, ``poisson_ratio``, ``density``,
        ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
    * - ``[material.scatter]``
      - Dispersione della deformazione critica delle barre. ``type = "none"``;
@@ -105,10 +106,12 @@ Regole del formato:
    * - ``[time]``
      - ``step`` (o ``auto``), ``duration``
    * - ``[damping]``
-     - ``type``, ``initial``, ``final``, ``switch_time``, ``constitutive``
+     - ``type`` (``mass_proportional``, lo smorzamento originale, o ``none``),
+       ``initial``, ``final``, ``switch_time`` (non ammessi con ``none``),
+       ``constitutive``
    * - ``[scenario]``
-     - ``type`` (``uniaxial_tension``, ``four_point_bending`` o
-       ``clamped_beam``) e le proprietà di quello scenario in snake_case, per
+     - ``type`` (``uniaxial_tension``, ``four_point_bending``,
+       ``clamped_beam`` o ``custom``, vedi sotto) e le proprietà di quello scenario in snake_case, per
        esempio ``force_rate``, ``ramp_time``, ``load_position`` (è ammesso
        ``"midspan"``)
    * - ``[[monitor.node]]``
@@ -127,7 +130,120 @@ Regole del formato:
 uscita; ``ldem.Parameters.fromFile`` accetta anche un file di caso. L'elenco
 delle chiavi è in un'unica tabella, ``ldem.schema.caseSchema``, che governa il
 lettore, lo scrittore e il modello. Per aggiungere uno scenario si aggiunge una
-riga a ``ldem.scenarios.registry``.
+riga a ``ldem.scenarios.registry``. Una nuova legge costitutiva è una sottoclasse
+di ``ldem.material.MaterialLaw`` registrata in ``ldem.material.lawRegistry``; un
+nuovo modello di smorzamento, una sottoclasse di ``ldem.solver.DampingModel``
+registrata in ``ldem.solver.dampingRegistry``.
+
+Riutilizzare un caso: extends
+-----------------------------
+
+Un file di caso può partire da un altro e cambiare solo ciò che differisce:
+
+.. code-block:: text
+
+   extends = "base.ldem"              # or a list: ["base.ldem", "material.ldem"]
+
+   [material]
+   fracture_energy = 1 N/m            # only what changes
+
+Le chiavi del file sostituiscono quelle ereditate. Una tabella ripetuta
+(``[[support]]``, ``[[load]]``, ``[[monitor.node]]``, ``[[sweep]]``) sostituisce
+l'intero elenco ereditato. Quando cambia il ``type`` dello scenario, di
+``[material.scatter]`` o di ``[damping]``, le chiavi del tipo precedente non
+ridefinite vengono scartate. Con un elenco, i file successivi prevalgono. I
+percorsi relativi (file del campo casuale, cartella di uscita) sono relativi al
+file che li contiene, e un errore indica il file e la riga in cui il problema è
+scritto. ``results.info.case.parents`` conserva l'hash di ogni file ereditato.
+
+Scansioni di parametri
+----------------------
+
+Per studiare come il risultato dipende da un valore, si elencano i valori in
+blocchi ``[[sweep]]`` e si esegue ``ldem.sweep``:
+
+.. code-block:: text
+
+   [[sweep]]
+   key    = "material.fracture_energy"
+   values = ["0.1 N/m", "0.5 N/m", "1 N/m"]
+
+   [[sweep]]
+   key    = "time.duration"
+   values = ["20 us", "40 us"]
+
+.. code-block:: matlab
+
+   >> summary = ldem.sweep("case.ldem");                 % 3 x 2 = 6 runs, one folder each
+   >> ldem.sweep("case.ldem", DryRun=true);              % only validate and list the runs
+   >> ldem.sweep("case.ldem", Vary={"scenario.force_rate", ["1 kN/s" "2 kN/s"]});
+   >> results = ldem.run("case.ldem", Overrides=struct("path", "material.fracture_energy", "value", "2 N/m"));
+
+Più blocchi danno tutte le combinazioni; ``sweep_mode = "zip"`` (una chiave
+all'inizio del file) li prende uno a uno. Si può variare qualsiasi chiave a
+valore singolo, e quelle dello scenario come ``scenario.<chiave>``. I valori
+sono numeri o testi con unità. Ogni esecuzione viene validata prima di iniziare
+la prima. Le esecuzioni vanno in ``run_001``, ``run_002``, ... (ciascuna con il
+proprio ``case.ldem`` risolto) e la tabella ``sweep_summary.csv`` le elenca, con
+il numero di barre danneggiate e rotte; un'esecuzione che fallisce viene
+registrata e la scansione prosegue.
+
+Riferimento di tutte le chiavi
+------------------------------
+
+Le tabelle seguenti sono generate da ``ldem.schema.caseSchema``, la stessa
+tabella usata dal lettore, quindi concordano sempre con esso. Le descrizioni
+sono in inglese.
+
+.. include:: ../case-keys.inc
+
+La propria prova: appoggi e carichi
+-----------------------------------
+
+Con ``type = "custom"`` la prova si descrive nel file di caso con blocchi
+``[[support]]`` e ``[[load]]``, senza scrivere una classe. Questa è la prova
+uniassiale (``testId = 101``) come blocchi:
+
+.. code-block:: text
+
+   [scenario]
+   type = "custom"
+
+   [[support]]
+   name = "left end"
+   x    = 0.5                 # the layer of centre nodes at x = 0.5 modules
+   fix  = ["x"]               # directions that cannot move
+
+   [[load]]
+   name          = "right end"
+   x             = "max - 0.5"
+   direction     = "x"
+   type          = "displacement"    # or "force"
+   time_function = "linear"
+   rate          = -4 mm/s
+   reaction      = true              # its force is the reaction of the test
+
+I **nodi** si scelgono con ``nodes`` (``all``, ``grid`` per gli angoli dei
+moduli o ``centre`` per i loro centri), ``ids`` (numeri di nodo) e ``x``, ``y``,
+``z``. Una posizione è in moduli (i nodi centrali sono a semi-interi, quelli
+d'angolo a interi), un intervallo ``[lo, hi]``, o un testo con i riferimenti
+``min``, ``max`` e ``mid`` e uno scostamento, come ``"max - 0.5"``. Un nodo deve
+soddisfare tutte le condizioni. Le posizioni si riferiscono al reticolo
+regolare, quindi non cambiano quando ``mesh.perturbation`` sposta i nodi.
+
+Gli **appoggi** bloccano le direzioni di ``fix``. I **carichi** agiscono su una
+``direction`` come ``force`` (newton su ogni nodo scelto) o come
+``displacement`` imposto (metri dalla posizione iniziale; il solver blocca quella
+direzione). Il valore segue ``time_function``: ``constant`` (``value``),
+``linear`` (``rate``), ``ramp`` (``rate`` fino al tempo ``until``, poi costante)
+o ``table`` (``times`` e ``values`` in unità SI, lineare tra i punti e costante
+fuori).
+
+Un blocco con ``reaction = true`` aggiunge la sua forza alla reazione della prova
+(la somma delle forze di barra nelle sue direzioni bloccate); se nessuno la
+richiede, la reazione è NaN. Un blocco che non sceglie alcun nodo è un errore che
+lo nomina. Le tre prove incorporate scritte così danno esattamente gli stessi
+risultati delle loro classi.
 
 Prove disponibili
 -----------------

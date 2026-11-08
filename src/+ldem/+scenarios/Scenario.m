@@ -55,6 +55,17 @@ classdef (Abstract) Scenario
     end
 
     methods
+        function data = prepare(obj, nodes0, fixed, params) %#ok<INUSD>
+            %PREPARE  Data that depends only on the mesh, computed once.
+            %
+            %   data = scenario.prepare(nodes0, fixed, params) is called once by
+            %   ldem.mesh.buildMesh; a non-empty struct is stored in
+            %   mesh.scenarioData so that applyLoads and reactions do not have to
+            %   find the loaded nodes again at every step. The default is an empty
+            %   struct (nothing to prepare).
+            data = struct();
+        end
+
         function reaction = reactions(obj, state, mesh, params) %#ok<INUSD>
             %REACTIONS  Reaction force of the test as [Rx Ry Rz] [N].
             %

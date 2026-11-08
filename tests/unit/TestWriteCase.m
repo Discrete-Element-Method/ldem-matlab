@@ -66,7 +66,7 @@ classdef TestWriteCase < LdemTestCase
             text = ldem.io.writeCase(path, p);
             testCase.verifySubstring(text, 'file = "../../shared/field.txt"');
             testCase.verifyEqual(strrep(string(ldem.io.readCase(path).params.randomFieldFile), '\', '/'), ...
-                strrep(string(fullfile(testCase.Folder, "a", "b", "../../shared/field.txt")), '\', '/'));
+                strrep(string(fullfile(testCase.Folder, "shared", "field.txt")), '\', '/'));
         end
 
         function exampleCaseFilesMatchTheirDataFiles(testCase)
@@ -157,9 +157,10 @@ classdef TestWriteCase < LdemTestCase
             schema = ldem.schema.caseSchema();
             onlyWithAnOption = ["material.scatter.file" "material.scatter.cv" ...
                 "material.scatter.correlation_length" "material.scatter.seed" ...
-                "monitor.bar.tracked" "format" "title" "authors" "scenario.type"];
+                "monitor.bar.tracked" "format" "title" "authors" "scenario.type" ...
+                "extends" "sweep_mode"];
             for row = schema.'
-                if startsWith(row.path, "monitor.node") || any(row.path == onlyWithAnOption)
+                if startsWith(row.path, ["monitor.node" "support." "load." "sweep."]) || any(row.path == onlyWithAnOption)
                     continue
                 end
                 key = string(regexprep(row.path, '^.*\.', ''));

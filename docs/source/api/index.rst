@@ -21,6 +21,7 @@ Running a simulation / Ejecutar una simulación
    :members:
 .. mat:autofunction:: ldem.run
 .. mat:autofunction:: ldem.check
+.. mat:autofunction:: ldem.sweep
 .. mat:autofunction:: ldem.version
 
 Input and output / Entrada y salida
@@ -66,6 +67,11 @@ Material
 .. mat:autofunction:: ldem.material.buildBarProperties
 .. mat:autofunction:: ldem.material.generateRandomField
 .. mat:autofunction:: ldem.material.bilinearLaw
+.. mat:autoclass:: ldem.material.MaterialLaw
+.. mat:autoclass:: ldem.material.BilinearBarLaw
+.. mat:autoclass:: ldem.material.LinearElasticBarLaw
+.. mat:autofunction:: ldem.material.lawRegistry
+.. mat:autofunction:: ldem.material.lawFromName
 .. mat:autofunction:: ldem.material.summarizeMaterial
 
 Scenarios / Escenarios de ensayo
@@ -79,6 +85,11 @@ Scenarios / Escenarios de ensayo
 .. mat:autoclass:: ldem.scenarios.ClampedBeam
 .. mat:autofunction:: ldem.scenarios.fromTestId
 .. mat:autofunction:: ldem.scenarios.fromName
+.. mat:autoclass:: ldem.scenarios.Declarative
+.. mat:autofunction:: ldem.scenarios.selectNodes
+.. mat:autofunction:: ldem.scenarios.parseCoordinate
+.. mat:autofunction:: ldem.scenarios.coordinateText
+.. mat:autofunction:: ldem.scenarios.timeFunction
 .. mat:autofunction:: ldem.scenarios.registry
 
 Case-file schema / Esquema de los archivos de caso
@@ -93,6 +104,7 @@ Case-file schema / Esquema de los archivos de caso
 .. mat:autofunction:: ldem.schema.shortestText
 .. mat:autofunction:: ldem.schema.suggest
 .. mat:autofunction:: ldem.schema.raise
+.. mat:autofunction:: ldem.schema.writeKeyReference
 
 Solver
 ------
@@ -101,6 +113,11 @@ Solver
 
 .. mat:autofunction:: ldem.solver.simulate
 .. mat:autofunction:: ldem.solver.initialState
+.. mat:autoclass:: ldem.solver.DampingModel
+.. mat:autoclass:: ldem.solver.MassProportionalDamping
+.. mat:autoclass:: ldem.solver.NoDamping
+.. mat:autofunction:: ldem.solver.dampingRegistry
+.. mat:autofunction:: ldem.solver.dampingFromName
 .. mat:autofunction:: ldem.solver.computeBarForces
 .. mat:autofunction:: ldem.solver.integrateStep
 .. mat:autofunction:: ldem.solver.dampingCoefficient

@@ -22,6 +22,7 @@ function mesh = buildMesh(params, scenario)
 %       barBoundaryFaces  nBars-by-1 prism faces a grid edge lies on (0, 1 or 2)
 %       barLength     nBars-by-1 initial lengths [m]
 %       barCentres    nBars-by-3 midpoints [m]
+%       scenarioData  (only if the scenario has any) data prepared by scenario.prepare
 %
 %   Example:
 %       params = ldem.Parameters(testId=101, nModules=[6 3 3]);
@@ -48,6 +49,10 @@ mesh = struct();
 mesh.nodes0     = nodes;
 mesh.nGridNodes = prod(params.nModules);
 mesh.fixed      = scenario.fixedDofs(nodes, params);
+scenarioData    = scenario.prepare(nodes, mesh.fixed, params);
+if ~isempty(fieldnames(scenarioData))
+    mesh.scenarioData = scenarioData;
+end
 mesh.mass       = ldem.mesh.computeNodalMasses(params.nModules, ...
                       params.moduleLength, params.density);
 [mesh.bars, mesh.barType, mesh.barBoundaryFaces] = ldem.mesh.buildBars(params.nModules);

@@ -1,4 +1,4 @@
-function state = integrateStep(state, mesh, barProps, params)
+function state = integrateStep(state, mesh, barProps, params, law, damping)
 %INTEGRATESTEP  Advance the node positions one time step.
 %
 %   state = ldem.solver.integrateStep(state, mesh, barProps, params) solves
@@ -47,6 +47,8 @@ function state = integrateStep(state, mesh, barProps, params)
 %     mesh      Struct from ldem.mesh.buildMesh (mass, fixed, barLength).
 %     barProps  Struct from ldem.material.buildBarProperties.
 %     params    ldem.Parameters.
+%     law       Optional ldem.material.MaterialLaw (default: params.constitutiveLaw).
+%     damping   Optional ldem.solver.DampingModel (default: params.dampingModel).
 %
 %   Output:
 %     state  Updated: displacement, previousDisplacement, velocity,
@@ -60,13 +62,22 @@ function state = integrateStep(state, mesh, barProps, params)
 %   used a wrong index (V(2,I) instead of V(2,:)); here it is computed like
 %   the other two components.
 %
-%   See also ldem.solver.computeBarForces, ldem.solver.dampingCoefficient.
+%   See also ldem.solver.computeBarForces, ldem.solver.DampingModel, ldem.material.MaterialLaw.
 
 arguments
     state (1,1) struct
     mesh (1,1) struct
     barProps (1,1) struct
     params (1,1) ldem.Parameters
+    law = []
+    damping = []
+end
+
+if isempty(law)
+    law = ldem.material.lawFromName(params.constitutiveLaw);
+end
+if isempty(damping)
+    damping = ldem.solver.dampingFromName(params.dampingModel);
 end
 
 if any(mesh.mass == 0)
@@ -77,7 +88,7 @@ dt  = params.dt;
 ddt = 2.0 * dt;
 sdt = dt * dt;
 
-c = ldem.solver.dampingCoefficient(state.step, params);
+c = damping.coefficient(state.step, params);
 dampingPrevious = 1.0 - c * dt / 2.0;
 dampingNext     = 1.0 + c * dt / 2.0;
 
@@ -97,9 +108,7 @@ nodeDamping = (c .* (mesh.mass ./ 2.0)) .* velocity .* (uNext - uPrev);
 dissipated = sum(nodeDamping, 'all');
 
 % Energy dissipated by the viscous term of the constitutive law.
-isCompressed = state.strain < 0.0;
-stiffness = state.history.tensionStiffness;
-stiffness(isCompressed) = barProps.stiffness(isCompressed);
+stiffness = law.viscousStiffness(state.strain, barProps, state.history);
 barViscous = 2.0 * (stiffness .* params.constitutiveDamping .* state.strainRate .* ...
     state.strainRate .* dt .* mesh.barLength ./ 2.0);
 dissipated = dissipated + sum(barViscous);

@@ -19,6 +19,36 @@
   of the case file, its text and the resolved case (all defaults and overrides),
   and the resolved case is saved as `case.ldem` in the output folder
   (`ldem.runSimulation` has a new `CaseInfo` option for this).
+- Pluggable constitutive law and damping model, chosen by name in the case file
+  (`[material] law`, `[damping] type`) and in `ldem.Parameters`
+  (`constitutiveLaw`, `dampingModel`). `ldem.material.MaterialLaw` is the
+  interface of a law (force, energies, damage energy of a bar, viscous
+  stiffness); `bilinear` (the legacy law, results unchanged) and the new
+  `linear_elastic` implement it, registered in `ldem.material.lawRegistry`.
+  `ldem.solver.DampingModel` is the interface of a damping model; `mass_proportional`
+  (legacy) and the new `none` are in `ldem.solver.dampingRegistry`. The solver
+  functions take the law and the model as optional last arguments.
+- Case files can inherit: `extends = "base.ldem"` (or a list) starts from other files; keys
+  replace the inherited ones, repeated tables replace the whole list, a change of scenario,
+  scatter or damping type drops the keys of the old type, relative paths follow the file
+  that writes them, and errors name that file. Loops and missing parents are errors.
+- Parameter sweeps: `[[sweep]]` blocks (`key`, `values`; `sweep_mode = "product"` or
+  `"zip"`) and `ldem.sweep`, which validates every run first, runs each in
+  `run_NNN` with its resolved `case.ldem`, and returns a table (also written as
+  `sweep_summary.csv`) with the varied values, status, time and damaged and broken bars.
+  `ldem.io.readCase` has an `Overrides` option and `ldem.run` too; `results.info.case` also
+  keeps `parents` (with hashes) and `overrides`.
+- The key reference of the user guide (`docs/source/case-keys.inc`) is generated from
+  `ldem.schema.caseSchema` by `ldem.schema.writeKeyReference`; a test fails if it is out of date.
+- Tests defined in the case file, without a class: `[scenario] type = "custom"` with
+  `[[support]]` and `[[load]]` blocks. Nodes are selected by kind (all, grid, centre),
+  by number and by coordinate ranges in modules with `min`, `max` and `mid`; a load is a
+  force or a prescribed displacement following `constant`, `linear`, `ramp` or `table`;
+  blocks can join the reaction of the test. `ldem.scenarios.Declarative` (test 900) is
+  the class behind it, with `selectNodes`, `parseCoordinate`, `coordinateText` and
+  `timeFunction`. The three built-in tests written as blocks give exactly the same
+  results. `Scenario.prepare` lets a scenario compute its node lists once; they are
+  stored in `mesh.scenarioData`. New unit `force` (N, kN, MN).
 - `ldem.scenarios.registry` is the single list of scenarios;
   `ldem.scenarios.fromTestId` reads it and `ldem.scenarios.fromName` is new.
 - `case.ldem` next to the `DATA0.DAT` of `examples/beam_102` and

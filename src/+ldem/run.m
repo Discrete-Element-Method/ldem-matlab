@@ -13,6 +13,7 @@ function results = run(casePath, options)
 %     OutputFolder  Other output folder ("" writes nothing).
 %     Formats       Other files to write, for example "mat".
 %     Verbose       Print the progress (default true).
+%     Overrides     Struct array (fields path = "section.key" and value) that replaces keys of the case.
 %
 %   To make the run reproducible, results.info.case keeps
 %
@@ -20,6 +21,8 @@ function results = run(casePath, options)
 %     sha256    SHA-256 hash of the file that was read (text, 64 hex digits).
 %     original  Text of that file.
 %     resolved  Complete case with every default and the overrides, as ldem.io.writeCase writes it.
+%     parents   Struct array (source, sha256) of the case files inherited through extends.
+%     overrides Text lines "key = value" of the Overrides option.
 %
 %   and, when files are written, the resolved case is also saved as
 %   "case.ldem" in the output folder, so a result folder can be run again with
@@ -41,9 +44,15 @@ arguments
     options.OutputFolder = []
     options.Formats = []
     options.Verbose (1,1) logical = true
+    options.Overrides = []
 end
 
-c = ldem.io.readCase(casePath);
+c = ldem.io.readCase(casePath, Overrides = options.Overrides);
+if ~isempty(c.info.sweep) && isempty(options.Overrides)
+    warning('ldem:run:sweepIgnored', ...
+        '%s defines a sweep of %d key(s); ldem.run runs only the base case. Use ldem.sweep to run them all.', ...
+        casePath, numel(c.info.sweep));
+end
 folder = c.options.OutputFolder;
 formats = c.options.Formats;
 if ~isempty(options.OutputFolder)
@@ -63,8 +72,16 @@ resolved = ldem.io.writeCase("", c.params, c.scenario, ...
     ControlNodeNames = c.info.controlNodeNames, ...
     Header = "Resolved from " + c.info.source + " by ldem.run.", ...
     Formats = resolvedFormats);
+parents = struct('source', {}, 'sha256', {});
+for parent = c.info.parents.'
+    parents(end+1) = struct('source', parent, 'sha256', sha256Of(string(fileread(parent)))); %#ok<AGROW>
+end
+overrideLines = strings(0, 1);
+for k = 1:numel(options.Overrides)
+    overrideLines(end+1, 1) = string(options.Overrides(k).path) + " = " + string(options.Overrides(k).value); %#ok<AGROW>
+end
 caseInfo = struct('source', c.info.source, 'sha256', sha256Of(original), ...
-    'original', original, 'resolved', resolved);
+    'original', original, 'resolved', resolved, 'parents', parents, 'overrides', overrideLines);
 
 results = ldem.runSimulation(c.params, Scenario = c.scenario, ...
     OutputFolder = folder, Formats = formats, Verbose = options.Verbose, ...

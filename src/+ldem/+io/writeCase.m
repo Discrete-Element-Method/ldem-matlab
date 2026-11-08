@@ -99,7 +99,7 @@ lines = [lines; section("mesh", rows, withComments)];
 
 % [material]
 rows = {
-    "law", quote("bilinear"), doc("material.law")
+    "law", quote(params.constitutiveLaw), doc("material.law")
     "young_modulus", q(params.youngModulus, "pressure"), doc("material.young_modulus")
     "poisson_ratio", num(params.poissonRatio), doc("material.poisson_ratio")
     "density", q(params.density, "density"), doc("material.density")
@@ -132,12 +132,19 @@ rows = {
 lines = [lines; section("time", rows, withComments)];
 
 % [damping]
-rows = {
-    "type", quote("mass_proportional"), doc("damping.type")
-    "initial", q(params.dampingInitial, "rate"), doc("damping.initial")
-    "final", q(params.dampingFinal, "rate"), doc("damping.final")
-    "switch_time", q(params.dampingSwitchTime, "time"), doc("damping.switch_time")
-    "constitutive", q(params.constitutiveDamping, "time"), doc("damping.constitutive")};
+dampingSpec = ldem.solver.dampingRegistry();
+dampingSpec = dampingSpec([dampingSpec.name] == lower(params.dampingModel));
+rows = {"type", quote(params.dampingModel), doc("damping.type")};
+if any(dampingSpec.keys == "initial")
+    rows(end+1, :) = {"initial", q(params.dampingInitial, "rate"), doc("damping.initial")};
+end
+if any(dampingSpec.keys == "final")
+    rows(end+1, :) = {"final", q(params.dampingFinal, "rate"), doc("damping.final")};
+end
+if any(dampingSpec.keys == "switch_time")
+    rows(end+1, :) = {"switch_time", q(params.dampingSwitchTime, "time"), doc("damping.switch_time")};
+end
+rows(end+1, :) = {"constitutive", q(params.constitutiveDamping, "time"), doc("damping.constitutive")};
 lines = [lines; section("damping", rows, withComments)];
 
 % [scenario]
@@ -153,6 +160,14 @@ for prop = string(fieldnames(spec.units)).'
     rows(end+1, :) = {key, valueText, "Property " + prop + " of " + string(class(scenario)) + "."}; %#ok<AGROW>
 end
 lines = [lines; section("scenario", rows, withComments)];
+if isa(scenario, 'ldem.scenarios.Declarative')
+    for j = 1:numel(scenario.supports)
+        lines = [lines; supportLines(scenario.supports(j), doc, withComments)]; %#ok<AGROW>
+    end
+    for j = 1:numel(scenario.loads)
+        lines = [lines; loadLines(scenario.loads(j), doc, withComments)]; %#ok<AGROW>
+    end
+end
 
 % [[monitor.node]]
 names = options.ControlNodeNames;
@@ -214,6 +229,79 @@ if strlength(path) > 0
     fprintf(fid, '%s', text);
     fclose(fid);
 end
+end
+
+function lines = supportLines(b, doc, withComments)
+%SUPPORTLINES  The [[support]] block of a declarative scenario.
+rows = cell(0, 3);
+if b.name ~= ""
+    rows(end+1, :) = {"name", quote(b.name), doc("support.name")};
+end
+rows = [rows; selectorRows(b.selector, "support", doc)];
+rows(end+1, :) = {"fix", directionList(b.fix), doc("support.fix")};
+if b.reaction
+    rows(end+1, :) = {"reaction", "true", doc("support.reaction")};
+end
+lines = ["[[support]]"; block(rows, withComments); ""];
+end
+
+function lines = loadLines(b, doc, withComments)
+%LOADLINES  The [[load]] block of a declarative scenario.
+q = @ldem.schema.formatQuantity;
+if b.type == "force"
+    valueDimension = "force";
+    rateDimension = "forcerate";
+else
+    valueDimension = "length";
+    rateDimension = "velocity";
+end
+rows = cell(0, 3);
+if b.name ~= ""
+    rows(end+1, :) = {"name", quote(b.name), doc("load.name")};
+end
+rows = [rows; selectorRows(b.selector, "load", doc)];
+axisLetters = 'xyz';
+rows(end+1, :) = {"direction", quote(string(axisLetters(b.direction))), doc("load.direction")};
+rows(end+1, :) = {"type", quote(b.type), doc("load.type")};
+rows(end+1, :) = {"time_function", quote(b.fn.type), doc("load.time_function")};
+switch b.fn.type
+    case "constant"
+        rows(end+1, :) = {"value", q(b.fn.value, valueDimension), doc("load.value")};
+    case "linear"
+        rows(end+1, :) = {"rate", q(b.fn.rate, rateDimension), doc("load.rate")};
+    case "ramp"
+        rows(end+1, :) = {"rate", q(b.fn.rate, rateDimension), doc("load.rate")};
+        rows(end+1, :) = {"until", q(b.fn.until, "time"), doc("load.until")};
+    case "table"
+        rows(end+1, :) = {"times", listText(b.fn.times), doc("load.times")};
+        rows(end+1, :) = {"values", listText(b.fn.values), doc("load.values")};
+end
+if b.reaction
+    rows(end+1, :) = {"reaction", "true", doc("load.reaction")};
+end
+lines = ["[[load]]"; block(rows, withComments); ""];
+end
+
+function rows = selectorRows(selector, kind, doc)
+%SELECTORROWS  Key/value rows of the selector of a block (only what restricts the nodes).
+rows = cell(0, 3);
+if selector.nodes ~= "all"
+    rows(end+1, :) = {"nodes", quote(selector.nodes), doc(kind + ".nodes")};
+end
+if ~isempty(selector.ids)
+    rows(end+1, :) = {"ids", listText(selector.ids), doc(kind + ".ids")};
+end
+for axis = ["x" "y" "z"]
+    if ~isempty(selector.(axis))
+        rows(end+1, :) = {axis, ldem.scenarios.coordinateText(selector.(axis)), doc(kind + "." + axis)}; %#ok<AGROW>
+    end
+end
+end
+
+function t = directionList(indices)
+axisLetters = 'xyz';
+letters = string(num2cell(axisLetters(indices)));
+t = "[" + strjoin('"' + letters + '"', ", ") + "]";
 end
 
 function note = docText(row)
