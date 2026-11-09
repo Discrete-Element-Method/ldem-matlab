@@ -1,20 +1,23 @@
 LDEM-MATLAB
 ===========
 
-Lattice Discrete Element Method (LDEM) in MATLAB /
-Método de Elementos Discretos tipo Reticulado en MATLAB.
+Lattice Discrete Element Method (LDEM) in MATLAB.
+
+The documentation is written in English and translated into Spanish, Portuguese
+and Italian. Choose the language in the sidebar of any page.
 
 .. toctree::
    :maxdepth: 2
-   :caption: English
+   :caption: User guide
 
-   en/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Español
-
-   es/index
+   introduction
+   installation
+   usage
+   examples
+   model
+   contributing
+   docs
+   authors
 
 .. toctree::
    :maxdepth: 2

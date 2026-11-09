@@ -1,20 +1,30 @@
 name: docs
+
 on:
   push:
     branches: [main]
   pull_request:
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the authors page is generated from the git history
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - run: pip install -r docs/requirements.txt
-      - run: sphinx-build -b html docs/source docs/build/html
+
+      # Builds English, Spanish, Portuguese and Italian; warnings are errors (-W).
+      - run: python docs/tools/build_docs.py
+
       - uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'
         with:

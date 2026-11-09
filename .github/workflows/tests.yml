@@ -1,11 +1,35 @@
 name: tests
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+
 jobs:
   matlab:
+    name: Code Analyzer and tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: matlab-actions/setup-matlab@v2
-      - uses: matlab-actions/run-command@v2
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
         with:
-          command: addpath('tests'); run_tests
+          # The code uses name=value arguments, the arguments block, buildtool and
+          # dictionary, so R2022b is the oldest release that can run it.
+          release: R2023b
+
+      - name: Run the build (static analysis + fast tests with coverage)
+        uses: matlab-actions/run-build@v2
+        with:
+          tasks: check test
+
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            test-results/
+            code-coverage/
+            code-issues/
+          if-no-files-found: ignore

@@ -1,0 +1,45 @@
+# User-interface texts of the theme (Furo) in pt: buttons, search and page navigation.
+# Kept by hand: docs/tools/update_translations.py does not touch this file.
+msgid ""
+msgstr ""
+"Project-Id-Version: LDEM-MATLAB\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language: pt\n"
+"Language-Team: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Skip to content"
+msgstr "Pular para o conteúdo"
+
+msgid "Back to top"
+msgstr "Voltar ao topo"
+
+msgid "Next"
+msgstr "Próximo"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Home"
+msgstr "Início"
+
+msgid "On this page"
+msgstr "Nesta página"
+
+msgid "Search"
+msgstr "Pesquisar"
+
+msgid "Index"
+msgstr "Índice"
+
+msgid "Error"
+msgstr "Erro"
+
+msgid "Please activate JavaScript to enable the search functionality."
+msgstr "Ative o JavaScript para habilitar a função de pesquisa."
+

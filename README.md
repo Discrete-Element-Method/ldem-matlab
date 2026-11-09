@@ -16,7 +16,7 @@ quasi-brittle materials (concrete, rocks).
 
 | Path | Content |
 |------|---------|
-| `src/ldem/` | LDEM source code (`.m`) |
+| `src/+ldem/` | The `ldem` package (refactored code) |
 | `tests/` | `matlab.unittest` test suite |
 | `docs/` | Sphinx documentation (English and Spanish), API generated from the `.m` files |
 | `examples/` | How to run the example simulations |
@@ -24,15 +24,16 @@ quasi-brittle materials (concrete, rocks).
 ### Quick start
 
 ```matlab
->> setup_path          % adds src/ldem to the MATLAB path
->> main                % runs the default simulation
+>> setup_path          % adds src/ to the MATLAB path
+>> run('examples/tension_101/runTension.m')   % small example, output in examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % beam clamped at both ends
 ```
 
 Run the tests:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % static analysis + fast tests (needs R2022b or newer)
+>> buildtool testAll  % also the slow tests
 ```
 
 ### Documentation
@@ -43,11 +44,11 @@ The API reference is generated automatically from the comments of the
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
-Source-code comments are written in Portuguese; the guides are available in
-English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
+Comments are written in English (the original code is in the git history under
+the tag `legacy-reference`); the guides are available in English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
 convention.
 
 ### Citation
@@ -68,7 +69,7 @@ quase-frágeis (concreto, rochas).
 
 | Caminho | Conteúdo |
 |---------|----------|
-| `src/ldem/` | Código-fonte LDEM (`.m`) |
+| `src/+ldem/` | O pacote `ldem` (código refatorado) |
 | `tests/` | Suíte de testes com `matlab.unittest` |
 | `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
 | `examples/` | Como executar as simulações de exemplo |
@@ -76,15 +77,16 @@ quase-frágeis (concreto, rochas).
 ### Início rápido
 
 ```matlab
->> setup_path          % adiciona src/ldem ao path do MATLAB
->> main                % executa a simulação padrão
+>> setup_path          % adiciona src/ ao path do MATLAB
+>> run('examples/tension_101/runTension.m')   % exemplo pequeno, saída em examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga biengastada
 ```
 
 Executar os testes:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % análise estática + testes rápidos (requer R2022b ou superior)
+>> buildtool testAll  % inclui também os testes lentos
 ```
 
 ### Documentação
@@ -94,11 +96,11 @@ A referência da API é gerada automaticamente a partir dos comentários dos
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
-Os comentários do código estão em português; os guias estão em espanhol e
-inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
+Os comentários estão em inglês (o código original está no histórico do git, na
+tag `legacy-reference`); os guias estão em espanhol e inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
 
 ### Citação
 
@@ -118,7 +120,7 @@ cuasi-frágiles (hormigón, rocas).
 
 | Ruta | Contenido |
 |------|-----------|
-| `src/ldem/` | Código fuente LDEM (`.m`) |
+| `src/+ldem/` | El paquete `ldem` (código refactorizado) |
 | `tests/` | Suite de tests con `matlab.unittest` |
 | `docs/` | Documentación Sphinx (español e inglés), API generada desde los `.m` |
 | `examples/` | Cómo ejecutar las simulaciones de ejemplo |
@@ -126,15 +128,16 @@ cuasi-frágiles (hormigón, rocas).
 ### Inicio rápido
 
 ```matlab
->> setup_path          % agrega src/ldem al path de MATLAB
->> main                % ejecuta la simulación por defecto
+>> setup_path          % agrega src/ al path de MATLAB
+>> run('examples/tension_101/runTension.m')   % ejemplo pequeño, salida en examples/tension_101/output
+>> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga empotrada en ambos extremos
 ```
 
 Ejecutar los tests:
 
 ```matlab
->> addpath tests
->> run_tests
+>> buildtool          % análisis estático + tests rápidos (requiere R2022b o posterior)
+>> buildtool testAll  % incluye también los tests lentos
 ```
 
 ### Documentación
@@ -144,11 +147,11 @@ los `.m` con Sphinx y `sphinxcontrib-matlabdomain`:
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
-Los comentarios del código están en portugués; las guías están en español e
-inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
+Los comentarios están en inglés (el código original está en el historial de git,
+etiqueta `legacy-reference`); las guías están en español e inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
 
 ### Cita
 
