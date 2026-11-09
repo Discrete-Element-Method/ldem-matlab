@@ -44,7 +44,7 @@ The API reference is generated automatically from the comments of the
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
 Comments are written in English (the original code is in the git history under
@@ -96,7 +96,7 @@ A referência da API é gerada automaticamente a partir dos comentários dos
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
 Os comentários estão em inglês (o código original está no histórico do git, na
@@ -147,7 +147,7 @@ los `.m` con Sphinx y `sphinxcontrib-matlabdomain`:
 
 ```bash
 pip install -r docs/requirements.txt
-sphinx-build -b html docs/source docs/build/html
+python docs/tools/build_docs.py
 ```
 
 Los comentarios están en inglés (el código original está en el historial de git,

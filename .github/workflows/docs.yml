@@ -22,8 +22,8 @@ jobs:
 
       - run: pip install -r docs/requirements.txt
 
-      # -W turns warnings into errors: the documentation is warning-free.
-      - run: sphinx-build -W --keep-going -b html docs/source docs/build/html
+      # Builds English, Spanish, Portuguese and Italian; warnings are errors (-W).
+      - run: python docs/tools/build_docs.py
 
       - uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'

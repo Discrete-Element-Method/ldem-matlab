@@ -55,7 +55,7 @@ errors with an identifier of the form `ldem:<area>:<problem>`.
 | `buildtool check` | Code Analyzer on `src/`, `tests/` and `examples/`; any warning fails |
 | `buildtool test` | Fast tests; writes `test-results/results.xml` and `code-coverage/coverage.xml` |
 | `buildtool testAll` | Also the slow tests (complete beam model) |
-| `buildtool docs` | Sphinx HTML in `docs/build/html` (needs Python and `docs/requirements.txt`) |
+| `buildtool docs` | Sphinx HTML in every language, in `docs/build/html/<language>` (needs Python and `docs/requirements.txt`) |
 | `buildtool clean` | Delete the generated files |
 
 `run_tests` (in `tests/`) is a lighter alternative that only runs the tests.

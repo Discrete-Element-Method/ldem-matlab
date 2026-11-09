@@ -26,6 +26,7 @@ test-results/
 code-coverage/
 
 # Python / Sphinx (docs)
+docs/locale/**/*.mo
 __pycache__/
 .venv/
 docs/build/

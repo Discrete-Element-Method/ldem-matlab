@@ -19,7 +19,7 @@ function plan = buildfile
 %              (Cobertura) and prints the coverage of the ldem package.
 %     testAll  Same as test but including the slow tests (they build the
 %              complete beam model of the example, about 167,000 nodes).
-%     docs     Builds the HTML documentation in docs/build/html.
+%     docs     Builds the HTML documentation, in every language, in docs/build/html.
 %     clean    Deletes test-results/, code-coverage/ and docs/build/.
 %
 %   See also run_tests, buildplan.
@@ -53,9 +53,9 @@ end
 function docsTask(context)
 % Build the Sphinx documentation.
 root = context.Plan.RootFolder;
-source = fullfile(root, 'docs', 'source');
+script = fullfile(root, 'docs', 'tools', 'build_docs.py');
 target = fullfile(root, 'docs', 'build', 'html');
-command = sprintf('python -m sphinx -W --keep-going -b html "%s" "%s"', source, target);
+command = sprintf('python "%s"', script);
 [status, output] = system(command);
 if status ~= 0
     error('build:docs', ['Sphinx failed (is Python with docs/requirements.txt installed?):' newline '%s'], output);

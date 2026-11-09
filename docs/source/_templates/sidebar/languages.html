@@ -1,17 +1,12 @@
-{#- Language switcher: the same page in the other languages. -#}
-{%- set langs = [('en', 'English'), ('es', 'Español'), ('pt', 'Português'), ('it', 'Italiano')] -%}
-{%- set parts = pagename.split('/') -%}
-{%- if parts|length > 1 and parts[0] in ['en', 'es', 'pt', 'it'] %}
+{#- Language selector. Every language is a separate site (docs/build/html/<language>/), so the
+    other languages are reached by a relative link to the same page in the sibling folder. -#}
+{%- set depth = pagename.count('/') -%}
 <div class="sidebar-tree" style="padding: 0 var(--sidebar-item-spacing-horizontal);">
   <p class="caption" role="heading"><span class="caption-text">Language / Idioma / Língua / Lingua</span></p>
-  <ul>
-  {%- for code, name in langs %}
-    {%- set target = code ~ '/' ~ parts[1:]|join('/') %}
-    <li{% if code == parts[0] %} class="current"{% endif %}>
-      {%- if code == parts[0] %}<strong>{{ name }}</strong>
-      {%- else %}<a href="{{ pathto(target) }}">{{ name }}</a>{% endif %}
-    </li>
+  <select aria-label="Language" onchange="window.location.href = this.value"
+          style="width: 100%; padding: 0.4em; color: var(--color-foreground-primary); background: var(--color-background-primary); border: 1px solid var(--color-background-border); border-radius: 4px;">
+  {%- for code, name in languages %}
+    <option value="{{ '../' * (depth + 1) }}{{ code }}/{{ pagename }}.html"{% if code == language %} selected{% endif %}>{{ name }}</option>
   {%- endfor %}
-  </ul>
+  </select>
 </div>
-{%- endif %}

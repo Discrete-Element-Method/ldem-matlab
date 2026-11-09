@@ -1,15 +1,20 @@
 # Examples
 
-| Folder | What it shows | Time |
-|--------|---------------|------|
-| `tension_101/` | Small prism under uniaxial load, all output formats, energy plot | seconds |
-| `beam_102/` | The 101x41x21-module beam read from `DATA0.DAT` | ~20 s for 50 steps; ~20 h for the full run |
-| `example1_clamped_beam/` | Beam clamped at both ends and loaded with a force at mid-span (model by Rodrigo) | see below |
+Three models that run from start to finish. Each has its inputs and a script that runs
+it and plots the results. The full description, with the model, the files and the
+results to expect, is in the user guide: *Examples* (`docs/source/examples.rst`).
+
+| Folder | What it shows | Size | Time |
+|--------|---------------|------|------|
+| `example1_clamped_beam/` | Beam clamped at both ends and loaded with a force at mid-span (model by Rodrigo) | 3,086 nodes | about 35 s |
+| `tension_101/` | Small prism under a uniaxial load, with damage and every output format | 74 nodes | about 6 s |
+| `beam_102/` | The 101x41x21-node four-point bending beam of the paper (demo of the first 50 steps) | 166,961 nodes | about 30 s for 50 steps; about 20 h for the full run |
 
 Run an example from MATLAB, from any folder:
 
 ```matlab
->> run('examples/tension_101/runTension.m')
+>> run('examples/example1_clamped_beam/runClampedBeam.m')
+>> results = ldem.run('examples/example1_clamped_beam/case.ldem');   % from the case file
 ```
 
 Outputs are written to an `output/` folder next to the script (ignored by git):
@@ -22,47 +27,28 @@ Outputs are written to an `output/` folder next to the script (ignored by git):
 
 ## Case files
 
-Each beam example has a `case.ldem` next to its `DATA0.DAT`: the same model in
-the readable case-file format (named keys, units, comments, the scenario and
-the output files in one place; see the user guide). It is generated from the
-`DATA0.DAT` and gives the same parameters.
+The two beam examples have a `case.ldem` next to their `DATA0.DAT`: the same model in
+the readable case-file format (named keys, units, comments, the scenario and the output
+files in one place). It is generated from the `DATA0.DAT` and gives the same parameters.
 
 ```matlab
 >> ldem.check('examples/example1_clamped_beam/case.ldem')    % what would be simulated
 >> results = ldem.run('examples/example1_clamped_beam/case.ldem');
 ```
 
-## beam_102 input files
+## Files
 
-| File | Purpose |
-|------|---------|
-| `case.ldem` | The same parameters as a case file (`ldem.io.readCase`, `ldem.run`) |
-| `DATA0.DAT` | Simulation parameters (format of the original program, read by `ldem.Parameters.fromFile`) |
-| `arquivo_3lc_rnao_cv05` | Random field applied to the critical strain of each bar (11 MB) |
+| Folder | File | Purpose |
+|--------|------|---------|
+| `example1_clamped_beam/` | `case.ldem` | The model as a case file |
+| | `runClampedBeam.m` | Reads `DATA0.DAT`, runs, and plots the force on the clamped ends, the vertical displacement of the control nodes and the energies |
+| | `DATA0.DAT` | Parameters in the format of the original program (`TEST 103`) |
+| `tension_101/` | `runTension.m` | Describes the model with `ldem.Parameters`, runs it and plots the energies |
+| `beam_102/` | `case.ldem` | The model as a case file |
+| | `runBeam.m` | Reads the input, runs the first 50 steps and plots the reaction |
+| | `DATA0.DAT` | Parameters in the format of the original program (`TEST 102`) |
+| | `arquivo_3lc_rnao_cv05` | Random field of the critical strain of each bar (11 MB); `example1_clamped_beam` uses it too |
 
-## example1_clamped_beam
-
-A beam of 5 x 5 x 50 modules (1 mm each) clamped at both ends and loaded at
-mid-span with a force, by Rodrigo (branch `dev_rodrigo`). It runs the 8000 steps
-(2.8 ms) of the original model in about one minute.
-
-| File | Purpose |
-|------|---------|
-| `case.ldem` | The same model as a case file (run it with `ldem.run`) |
-| `runClampedBeam.m` | Reads `DATA0.DAT`, runs the simulation, plots the force on the clamped ends, the vertical displacement of the control nodes and the energies |
-| `DATA0.DAT` | Parameters of the model (`TEST 103`, see `ldem.scenarios.ClampedBeam`) |
-
-The random field of the critical strain is shared with `beam_102`.
-
-How the model maps to the input file and the scenario:
-
-- The centre nodes of the first and of the last layer of modules are clamped.
-- A line of centre nodes at mid-span (z = 24.5 modules, y = 0.5 modules) carries a
-  force in +y that grows as `forceRate * t` (1000 N/s per node) up to `rampTime`
-  (0.35 ms) and then stays constant. Change them with
-  `ldem.scenarios.ClampedBeam(forceRate=..., rampTime=...)`.
-- Control nodes: the original file listed five, but nodes 6870 and 14398 do not
-  exist in this 3086-node mesh, so `DATA0.DAT` keeps nodes 2441 (a loaded node)
-  and 884 (a grid node at mid-span). The tracked bar is 14398, as in the original.
-- With these values the beam stays elastic (no bar softens). Raise `forceRate` or
-  lower the fracture energy (`GFR` in `DATA0.DAT`) to see damage.
+With the default values the clamped beam stays elastic (no bar softens). Raise the
+force (`force_rate` in `case.ldem`, `forceRate` in the scenario) or lower the fracture
+energy to see damage.

@@ -4,7 +4,7 @@ function c = readCase(path, options)
 %   c = ldem.io.readCase(path) reads a case file, checks every key against
 %   ldem.schema.caseSchema, converts the units to SI and returns the objects
 %   that ldem.runSimulation needs. The format is described in
-%   docs/source/en/usage.rst and in the template written by
+%   docs/source/usage.rst and in the template written by
 %   ldem.io.writeTemplate. A short example:
 %
 %       format = 1

@@ -3,7 +3,7 @@ SOURCEDIR   = source
 BUILDDIR    = build
 
 html:
-	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html
+	python tools/build_docs.py
 
 clean:
 	rm -rf $(BUILDDIR)

@@ -1,18 +1,15 @@
-API reference / Referencia de la API
-====================================
+API reference
+=============
 
-Generated automatically from the comments of the ``.m`` files /
-Generada automáticamente desde los comentarios de los ``.m``.
+Generated automatically from the comments of the ``.m`` files.
 
 The ``ldem`` package (``src/+ldem``) is the refactored code. It replaces the
 original routines, which are kept in the git history (tag
 ``legacy-reference``); the problems found in them are listed in
-``docs/known-issues/KNOWN_ISSUES.md`` / El paquete ``ldem`` (``src/+ldem``) es
-el código refactorizado. Reemplaza a las rutinas originales, que se conservan
-en el historial de git (etiqueta ``legacy-reference``).
+``docs/known-issues/KNOWN_ISSUES.md``.
 
-Running a simulation / Ejecutar una simulación
-----------------------------------------------
+Running a simulation
+--------------------
 
 .. mat:module:: ldem
 
@@ -24,8 +21,8 @@ Running a simulation / Ejecutar una simulación
 .. mat:autofunction:: ldem.sweep
 .. mat:autofunction:: ldem.version
 
-Input and output / Entrada y salida
------------------------------------
+Input and output
+----------------
 
 .. mat:module:: ldem.io
 
@@ -44,8 +41,8 @@ Input and output / Entrada y salida
 .. mat:autoclass:: ldem.io.SnapshotWriter
    :members:
 
-Mesh / Malla
-------------
+Mesh
+----
 
 .. mat:module:: ldem.mesh
 
@@ -74,8 +71,8 @@ Material
 .. mat:autofunction:: ldem.material.lawFromName
 .. mat:autofunction:: ldem.material.summarizeMaterial
 
-Scenarios / Escenarios de ensayo
---------------------------------
+Scenarios
+---------
 
 .. mat:module:: ldem.scenarios
 
@@ -92,8 +89,8 @@ Scenarios / Escenarios de ensayo
 .. mat:autofunction:: ldem.scenarios.timeFunction
 .. mat:autofunction:: ldem.scenarios.registry
 
-Case-file schema / Esquema de los archivos de caso
---------------------------------------------------
+Case-file schema
+----------------
 
 .. mat:module:: ldem.schema
 
@@ -125,8 +122,8 @@ Solver
 .. mat:autofunction:: ldem.solver.nodalKineticEnergy
 .. mat:autofunction:: ldem.solver.checkStability
 
-Post-processing / Postproceso
------------------------------
+Post-processing
+---------------
 
 .. mat:module:: ldem.post
 

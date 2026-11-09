@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 ### Added
+- Documentation of the examples (user guide page *Examples*, in the four languages): the model, files,
+  how to run and what to expect of the bi-clamped beam (`example1_clamped_beam`), the uniaxial prism
+  (`tension_101`) and the four-point bending beam (`beam_102`), with figures and numbers taken from
+  running them with the current code; `examples/README.md` brought up to date. The three examples run
+  from start to finish (about 35 s, 6 s and 30 s for its first 50 steps).
+- Documentation in one language and translated: the English pages in `docs/source/` are
+  the only source, and Spanish, Portuguese and Italian are gettext catalogs
+  (`docs/locale/<language>/LC_MESSAGES/<page>.po`) instead of copies of every page, so a
+  translation cannot drift from the English text (it had: some Portuguese and Italian
+  sentences differed from the English ones). `docs/tools/build_docs.py` builds each language
+  as its own site in `docs/build/html/<language>/` with a root page that opens the English
+  one; every page has a language selector in the sidebar; untranslated text falls back to
+  English. `docs/tools/update_translations.py` updates the catalogs after the English text
+  changes (changed sentences are marked fuzzy) and `--status` reports what is left. The tables
+  of case-file keys are translated too. The "Made with Sphinx and Furo" line of the footer is
+  removed. `buildtool docs`, the CI workflow and `make html` use the new script.
 - Case files (`.ldem`): a readable, commented input file that replaces
   `DATA0.DAT` and describes the whole model (mesh, material, random scatter,
   time, damping, scenario, control nodes, output). Keys are read by name, numbers
