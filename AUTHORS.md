@@ -4,6 +4,6 @@ Generated from the git history and `CITATION.cff` by `docs/tools/generate_author
 
 | Name | Commits |
 |------|---------|
-| Boris Rojo Tanzi | 19 |
+| Boris Rojo Tanzi | 30 |
 | Rodrigo Cavasotto Oscar Montanha | 7 |
 | Ignacio Iturrioz | - |
