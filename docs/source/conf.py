@@ -24,6 +24,7 @@ highlight_language = "matlab"
 # --- General ----------------------------------------------------------------
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 exclude_patterns = ["_build", "_generated/*"]
+numfig = True        # numbered figures, referenced with :numref:
 language = "en"      # the other languages are built with  -D language=es|pt|it  (docs/tools/build_docs.py)
 
 # --- Translations: English source pages, one .po catalog per page and language ----
