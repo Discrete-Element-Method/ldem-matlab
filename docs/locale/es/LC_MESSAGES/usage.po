@@ -16,11 +16,43 @@ msgstr ""
 msgid "Usage"
 msgstr "Uso"
 
-msgid "Run a simulation"
-msgstr "Ejecutar una simulación"
+msgid ""
+"A model is described in one of two ways: a **case file** (``.ldem``), a text file "
+"with every input of the simulation, or **MATLAB code** that builds an "
+"``ldem.Parameters`` object. Both run the same simulation."
+msgstr ""
+"Un modelo se describe de una de dos formas: un **archivo de caso** (``.ldem``), un "
+"archivo de texto con todos los datos de entrada de la simulación, o **código MATLAB**"
+" que construye un objeto ``ldem.Parameters``. Las dos ejecutan la misma simulación."
 
+msgid "Run a case file"
+msgstr "Ejecutar un archivo de caso"
+
+#, python-format
 msgid ""
 ">> setup_path                        % adds src/ to the MATLAB path\n"
+">> ldem.check(\"examples/example1_clamped_beam/case.ldem\")             % what would "
+"be simulated\n"
+">> results = ldem.run(\"examples/example1_clamped_beam/case.ldem\");   % run it\n"
+">> ldem.post.plotEnergy(results);"
+msgstr ""
+">> setup_path                        % agrega src/ al path de MATLAB\n"
+">> ldem.check(\"examples/example1_clamped_beam/case.ldem\")             % qué se "
+"simularía\n"
+">> results = ldem.run(\"examples/example1_clamped_beam/case.ldem\");   % lo ejecuta\n"
+">> ldem.post.plotEnergy(results);"
+
+msgid ""
+"``ldem.run`` writes the files listed in the ``[output]`` section of the case file. "
+"The format of case files is described below."
+msgstr ""
+"``ldem.run`` escribe los archivos indicados en la sección ``[output]`` del archivo de"
+" caso. El formato de los archivos de caso se describe más abajo."
+
+msgid "Run from MATLAB code"
+msgstr "Ejecutar desde código MATLAB"
+
+msgid ""
 ">> params = ldem.Parameters(testId=101, nModules=[6 3 3], totalTime=2e-4, ...\n"
 "       fractureEnergy=0.1, ...\n"
 "       output=struct('snapshotEvery', 250, 'controlNodesEvery', 10, ...\n"
@@ -29,7 +61,6 @@ msgid ""
 "       Formats=[\"mat\" \"ansys\" \"vtk\"]);\n"
 ">> ldem.post.plotEnergy(results);"
 msgstr ""
-">> setup_path                        % agrega src/ al path de MATLAB\n"
 ">> params = ldem.Parameters(testId=101, nModules=[6 3 3], totalTime=2e-4, ...\n"
 "       fractureEnergy=0.1, ...\n"
 "       output=struct('snapshotEvery', 250, 'controlNodesEvery', 10, ...\n"
@@ -47,24 +78,17 @@ msgstr ""
 "ejemplo, un paso de tiempo inestable). La versión completa y lista para ejecutar está"
 " en ``examples/tension_101/runTension.m``."
 
-msgid "To use an input file in the format of the original program:"
-msgstr "Para usar un archivo de entrada con el formato del programa original:"
-
-msgid ">> params = ldem.Parameters.fromFile(\"DATA0.DAT\");"
-msgstr ""
-
 msgid "Case files (``.ldem``)"
 msgstr "Archivos de caso (``.ldem``)"
 
 msgid ""
 "A *case file* describes the whole model in one readable text file: named keys instead"
 " of positions, units next to the numbers, comments, and the test, the random scatter "
-"and the output files together. It replaces ``DATA0.DAT``."
+"and the output files together."
 msgstr ""
 "Un *archivo de caso* describe todo el modelo en un único texto legible: claves con "
 "nombre en lugar de posiciones, unidades junto a los números, comentarios, y el "
-"ensayo, la dispersión aleatoria y los archivos de salida juntos. Reemplaza al "
-"``DATA0.DAT``."
+"ensayo, la dispersión aleatoria y los archivos de salida juntos."
 
 msgid ""
 "format = 1\n"
@@ -115,17 +139,13 @@ msgid ""
 "edit\n"
 ">> ldem.check(\"my_test.ldem\")                              % validate and report, "
 "no simulation\n"
-">> results = ldem.run(\"my_test.ldem\");                     % run it\n"
-">> ldem.io.convertLegacyInput(\"DATA0.DAT\", \"case.ldem\");   % convert an old input"
-" file"
+">> results = ldem.run(\"my_test.ldem\");                     % run it"
 msgstr ""
 ">> ldem.io.writeTemplate(\"mi_ensayo.ldem\", \"clamped_beam\");  % archivo comentado "
 "para editar\n"
 ">> ldem.check(\"mi_ensayo.ldem\")                              % valida e informa, "
 "sin simular\n"
-">> results = ldem.run(\"mi_ensayo.ldem\");                     % lo ejecuta\n"
-">> ldem.io.convertLegacyInput(\"DATA0.DAT\", \"caso.ldem\");     % convierte un "
-"archivo antiguo"
+">> results = ldem.run(\"mi_ensayo.ldem\");                     % lo ejecuta"
 
 msgid "Rules of the format:"
 msgstr "Reglas del formato:"
@@ -156,11 +176,13 @@ msgstr ""
 " el siguiente elemento de una tabla repetida y las listas se escriben ``[5, 5, 50]``."
 
 msgid ""
-"``mesh.modules`` counts **modules**: the ``M N L`` of ``DATA0.DAT`` count nodes, one "
-"more."
+"``mesh.modules`` counts **modules** (cubes) along x, y and z. The property "
+"``nModules`` of ``ldem.Parameters`` counts **nodes**, one more along each axis: "
+"``modules = [5, 2, 2]`` is ``nModules = [6 3 3]``."
 msgstr ""
-"``mesh.modules`` cuenta **módulos**: los ``M N L`` del ``DATA0.DAT`` cuentan nodos, "
-"uno más."
+"``mesh.modules`` cuenta **módulos** (cubos) a lo largo de x, y y z. La propiedad "
+"``nModules`` de ``ldem.Parameters`` cuenta **nodos**, uno más en cada eje: ``modules "
+"= [5, 2, 2]`` es ``nModules = [6 3 3]``."
 
 msgid "``time.step = auto`` (or no ``step``) takes 0.9 times the critical step."
 msgstr "``time.step = auto`` (o sin ``step``) toma 0.9 veces el paso crítico."
@@ -210,13 +232,13 @@ msgid "``[material]``"
 msgstr ""
 
 msgid ""
-"``law`` (``bilinear``, the legacy law, or ``linear_elastic``: no damage and no "
-"rupture), ``young_modulus``, ``poisson_ratio``, ``density``, ``fracture_energy``, "
-"``critical_distance``, ``failure_area_factor``"
+"``law`` (``bilinear``: elastic, softening and rupture; or ``linear_elastic``: no "
+"damage and no rupture), ``young_modulus``, ``poisson_ratio``, ``density``, "
+"``fracture_energy``, ``critical_distance``, ``failure_area_factor``"
 msgstr ""
-"``law`` (``bilinear``, la ley original, o ``linear_elastic``: sin daño ni rotura), "
-"``young_modulus``, ``poisson_ratio``, ``density``, ``fracture_energy``, "
-"``critical_distance``, ``failure_area_factor``"
+"``law`` (``bilinear``: elástica, ablandamiento y rotura; o ``linear_elastic``: sin "
+"daño ni rotura), ``young_modulus``, ``poisson_ratio``, ``density``, "
+"``fracture_energy``, ``critical_distance``, ``failure_area_factor``"
 
 msgid "``[material.scatter]``"
 msgstr ""
@@ -240,12 +262,11 @@ msgid "``[damping]``"
 msgstr ""
 
 msgid ""
-"``type`` (``mass_proportional``, the legacy damping, or ``none``), ``initial``, "
-"``final``, ``switch_time`` (not allowed with ``none``), ``constitutive``"
+"``type`` (``mass_proportional`` or ``none``), ``initial``, ``final``, ``switch_time``"
+" (not allowed with ``none``), ``constitutive``"
 msgstr ""
-"``type`` (``mass_proportional``, el amortiguamiento original, o ``none``), "
-"``initial``, ``final``, ``switch_time`` (no se admiten con ``none``), "
-"``constitutive``"
+"``type`` (``mass_proportional`` o ``none``), ``initial``, ``final``, ``switch_time`` "
+"(no se admiten con ``none``), ``constitutive``"
 
 msgid "``[scenario]``"
 msgstr ""
@@ -292,22 +313,21 @@ msgstr ""
 "significa nunca"
 
 msgid ""
-"``ldem.io.readCase`` returns the parameters, the scenario and the output options; "
-"``ldem.Parameters.fromFile`` also accepts a case file. The list of keys lives in one "
-"table, ``ldem.schema.caseSchema``, which drives the reader, the writer and the "
-"template. To add a scenario, add a line to ``ldem.scenarios.registry``. A new "
-"constitutive law is a subclass of ``ldem.material.MaterialLaw`` registered in "
+"``ldem.io.readCase`` returns the parameters, the scenario and the output options "
+"without running anything. The list of keys lives in one table, "
+"``ldem.schema.caseSchema``, which drives the reader, the writer and the template. To "
+"add a scenario, add a line to ``ldem.scenarios.registry``. A new constitutive law is "
+"a subclass of ``ldem.material.MaterialLaw`` registered in "
 "``ldem.material.lawRegistry``; a new damping model is a subclass of "
 "``ldem.solver.DampingModel`` registered in ``ldem.solver.dampingRegistry``."
 msgstr ""
-"``ldem.io.readCase`` devuelve los parámetros, el escenario y las opciones de salida; "
-"``ldem.Parameters.fromFile`` también acepta un archivo de caso. La lista de claves "
-"está en una sola tabla, ``ldem.schema.caseSchema``, que gobierna el lector, el "
-"escritor y la plantilla. Para agregar un escenario, se agrega una línea a "
-"``ldem.scenarios.registry``. Una ley constitutiva nueva es una subclase de "
-"``ldem.material.MaterialLaw`` registrada en ``ldem.material.lawRegistry``; un modelo "
-"de amortiguamiento nuevo, una subclase de ``ldem.solver.DampingModel`` registrada en "
-"``ldem.solver.dampingRegistry``."
+"``ldem.io.readCase`` devuelve los parámetros, el escenario y las opciones de salida "
+"sin ejecutar nada. La lista de claves está en una sola tabla, "
+"``ldem.schema.caseSchema``, que gobierna el lector, el escritor y la plantilla. Para "
+"agregar un escenario, se agrega una línea a ``ldem.scenarios.registry``. Una ley "
+"constitutiva nueva es una subclase de ``ldem.material.MaterialLaw`` registrada en "
+"``ldem.material.lawRegistry``; un modelo de amortiguamiento nuevo, una subclase de "
+"``ldem.solver.DampingModel`` registrada en ``ldem.solver.dampingRegistry``."
 
 msgid "Your own test: supports and loads"
 msgstr "Su propio ensayo: apoyos y cargas"
@@ -515,9 +535,6 @@ msgstr "Valor"
 msgid "Default"
 msgstr "Por defecto"
 
-msgid "Legacy"
-msgstr "Original"
-
 msgid "Description"
 msgstr "Descripción"
 
@@ -530,9 +547,6 @@ msgstr "entero"
 msgid "1"
 msgstr ""
 
-msgid "(none)"
-msgstr "(ninguno)"
-
 msgid "Version of the case-file format (currently 1)."
 msgstr "Versión del formato del archivo de caso (actualmente 1)."
 
@@ -541,6 +555,9 @@ msgstr ""
 
 msgid "text"
 msgstr "texto"
+
+msgid "(none)"
+msgstr "(ninguno)"
 
 msgid "Free text title of the case."
 msgstr "Título del caso, en texto libre."
@@ -585,9 +602,6 @@ msgstr "número + unidad (m, cm, mm, um, km)"
 msgid "3 mm"
 msgstr ""
 
-msgid "LCO"
-msgstr ""
-
 msgid "Edge length of each cubic module."
 msgstr "Longitud de la arista de cada módulo cúbico."
 
@@ -600,11 +614,8 @@ msgstr "lista de enteros"
 msgid "required"
 msgstr "obligatorio"
 
-msgid "M N L"
-msgstr ""
-
-msgid "Cubic modules along x, y and z (M N L of the legacy file count nodes: one more)."
-msgstr "Módulos cúbicos en x, y y z (los M N L del archivo original cuentan nodos: uno más)."
+msgid "Cubic modules along x, y and z."
+msgstr "Módulos cúbicos a lo largo de x, y y z."
 
 msgid "``perturbation``"
 msgstr ""
@@ -624,9 +635,6 @@ msgid "``seed``"
 msgstr ""
 
 msgid "123"
-msgstr ""
-
-msgid "SEED"
 msgstr ""
 
 msgid "Seed of the mesh perturbation (the random field has its own seed)."
@@ -653,9 +661,6 @@ msgstr "número + unidad (Pa, kPa, MPa, GPa)"
 msgid "32 GPa"
 msgstr ""
 
-msgid "YNG"
-msgstr ""
-
 msgid "Young's modulus."
 msgstr "Módulo de Young."
 
@@ -663,9 +668,6 @@ msgid "``poisson_ratio``"
 msgstr ""
 
 msgid "0.25"
-msgstr ""
-
-msgid "PSN"
 msgstr ""
 
 msgid "Poisson's ratio, from 0 up to less than 0.5."
@@ -680,9 +682,6 @@ msgstr "número + unidad (kg/m3, g/cm3)"
 msgid "2000 kg/m3"
 msgstr ""
 
-msgid "ROH"
-msgstr ""
-
 msgid "Mass density."
 msgstr "Densidad de masa."
 
@@ -695,9 +694,6 @@ msgstr "número + unidad (N/m, kN/m)"
 msgid "50 N/m"
 msgstr ""
 
-msgid "GFR"
-msgstr ""
-
 msgid "Specific fracture energy."
 msgstr "Energía específica de fractura."
 
@@ -707,9 +703,6 @@ msgstr ""
 msgid "28 mm"
 msgstr ""
 
-msgid "DEQ"
-msgstr ""
-
 msgid "Equivalent (critical) distance."
 msgstr "Distancia equivalente (crítica)."
 
@@ -717,9 +710,6 @@ msgid "``failure_area_factor``"
 msgstr ""
 
 msgid "0.1385"
-msgstr ""
-
-msgid "CAF"
 msgstr ""
 
 msgid "Fraction of the module face that fails per bar."
@@ -781,9 +771,6 @@ msgstr "tiempo, o auto"
 msgid "\"auto\""
 msgstr ""
 
-msgid "DT"
-msgstr ""
-
 msgid "Integration time step, or auto (0.9 times the critical step)."
 msgstr "Paso de tiempo de integración, o auto (0.9 veces el paso crítico)."
 
@@ -792,9 +779,6 @@ msgstr ""
 
 msgid "number + unit (s, ms, us, ns)"
 msgstr "número + unidad (s, ms, us, ns)"
-
-msgid "TTOT"
-msgstr ""
 
 msgid "Total simulated time."
 msgstr "Tiempo total simulado."
@@ -817,16 +801,10 @@ msgstr "número + unidad (1/s, 1/ms)"
 msgid "25000 1/s"
 msgstr ""
 
-msgid "DF1"
-msgstr ""
-
 msgid "Mass-proportional damping before switch\\_time."
 msgstr "Amortiguamiento proporcional a la masa antes de switch\\_time."
 
 msgid "``final``"
-msgstr ""
-
-msgid "DF2"
 msgstr ""
 
 msgid "Mass-proportional damping after switch\\_time."
@@ -838,9 +816,6 @@ msgstr ""
 msgid "15 ms"
 msgstr ""
 
-msgid "TDAF"
-msgstr ""
-
 msgid "Time at which the damping changes from initial to final."
 msgstr "Tiempo en que el amortiguamiento pasa de initial a final."
 
@@ -850,14 +825,8 @@ msgstr ""
 msgid "0 s"
 msgstr ""
 
-msgid "CON"
-msgstr ""
-
 msgid "Stiffness-proportional damping inside the bar law."
 msgstr "Amortiguamiento proporcional a la rigidez dentro de la ley de las barras."
-
-msgid "TEST"
-msgstr ""
 
 msgid "Test case (see ldem.scenarios.registry); its other keys follow."
 msgstr "Ensayo (ver ldem.scenarios.registry); sus otras claves siguen."
@@ -1009,9 +978,6 @@ msgstr "Valores a probar: números, o textos con unidades como [\"0.1 N/m\", \"0
 msgid "``id``"
 msgstr ""
 
-msgid "NCON"
-msgstr ""
-
 msgid "Number of a node whose motion is recorded."
 msgstr "Número de un nodo cuyo movimiento se registra."
 
@@ -1029,9 +995,6 @@ msgstr ""
 
 msgid "off"
 msgstr "desactivado"
-
-msgid "OU9"
-msgstr ""
 
 msgid "Number of the bar whose strain history is stored at every step."
 msgstr "Número de la barra cuya historia de deformación se guarda en cada paso."
@@ -1075,25 +1038,16 @@ msgstr ""
 msgid "steps or time (0 = never)"
 msgstr "pasos o tiempo (0 = nunca)"
 
-msgid "OU3"
-msgstr ""
-
 msgid "Steps or time between full-field snapshots; 0 = never."
 msgstr "Pasos o tiempo entre instantáneas del campo completo; 0 = nunca."
 
 msgid "``[output.control_nodes]``"
 msgstr ""
 
-msgid "OU6"
-msgstr ""
-
 msgid "Steps or time between records of the control nodes and reactions; 0 = never."
 msgstr "Pasos o tiempo entre registros de los nodos de control y reacciones; 0 = nunca."
 
 msgid "``[output.energy]``"
-msgstr ""
-
-msgid "OU8"
 msgstr ""
 
 msgid "Steps or time between records of the energies; 0 = never."

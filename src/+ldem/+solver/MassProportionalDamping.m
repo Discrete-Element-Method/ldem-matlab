@@ -1,5 +1,5 @@
 classdef MassProportionalDamping < ldem.solver.DampingModel
-    %MASSPROPORTIONALDAMPING  Constant coefficient that switches once (legacy damping).
+    %MASSPROPORTIONALDAMPING  Constant coefficient that switches once.
     %
     %   The coefficient is params.dampingInitial before the switch step and
     %   params.dampingFinal from then on, see ldem.solver.dampingCoefficient. The

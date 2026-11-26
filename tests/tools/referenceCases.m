@@ -11,7 +11,7 @@ function cases = referenceCases()
 %
 %   Fields of every case:
 %     name          Unique identifier (also the fixture file name).
-%     test          Test number written to DATA0.DAT (101 or 102).
+%     test          Test number (101 or 102).
 %     modules       [M N L] number of nodes along x, y, z.
 %     nSteps        Number of time steps to integrate.
 %     fractureEnergy  GFR, specific fracture energy [N/m].
@@ -22,8 +22,6 @@ function cases = referenceCases()
 %
 %   The golden-master fixtures in tests/fixtures were produced by running
 %   these cases with the corrected original code (git tag legacy-reference).
-%
-%   See also writeDataFile.
 
 shared = struct( ...
     'seed',          123, ...

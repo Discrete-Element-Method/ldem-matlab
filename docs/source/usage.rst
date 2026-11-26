@@ -1,12 +1,28 @@
 Usage
 =====
 
-Run a simulation
-----------------
+A model is described in one of two ways: a **case file** (``.ldem``), a text
+file with every input of the simulation, or **MATLAB code** that builds an
+``ldem.Parameters`` object. Both run the same simulation.
+
+Run a case file
+---------------
 
 .. code-block:: matlab
 
    >> setup_path                        % adds src/ to the MATLAB path
+   >> ldem.check("examples/example1_clamped_beam/case.ldem")             % what would be simulated
+   >> results = ldem.run("examples/example1_clamped_beam/case.ldem");   % run it
+   >> ldem.post.plotEnergy(results);
+
+``ldem.run`` writes the files listed in the ``[output]`` section of the case
+file. The format of case files is described below.
+
+Run from MATLAB code
+--------------------
+
+.. code-block:: matlab
+
    >> params = ldem.Parameters(testId=101, nModules=[6 3 3], totalTime=2e-4, ...
           fractureEnergy=0.1, ...
           output=struct('snapshotEvery', 250, 'controlNodesEvery', 10, ...
@@ -19,18 +35,12 @@ Run a simulation
 wrong (for example an unstable time step). The complete, ready-to-run version
 of this script is ``examples/tension_101/runTension.m``.
 
-To use an input file in the format of the original program:
-
-.. code-block:: matlab
-
-   >> params = ldem.Parameters.fromFile("DATA0.DAT");
-
 Case files (``.ldem``)
 ----------------------
 
 A *case file* describes the whole model in one readable text file: named keys
 instead of positions, units next to the numbers, comments, and the test, the
-random scatter and the output files together. It replaces ``DATA0.DAT``.
+random scatter and the output files together.
 
 .. code-block:: text
 
@@ -60,7 +70,6 @@ random scatter and the output files together. It replaces ``DATA0.DAT``.
    >> ldem.io.writeTemplate("my_test.ldem", "clamped_beam");  % a commented file to edit
    >> ldem.check("my_test.ldem")                              % validate and report, no simulation
    >> results = ldem.run("my_test.ldem");                     % run it
-   >> ldem.io.convertLegacyInput("DATA0.DAT", "case.ldem");   % convert an old input file
 
 Rules of the format:
 
@@ -72,8 +81,9 @@ Rules of the format:
   an error that lists the valid ones.
 * ``#`` starts a comment, ``[section]`` opens a table, ``[[monitor.node]]``
   starts the next element of a repeated table, lists are written ``[5, 5, 50]``.
-* ``mesh.modules`` counts **modules**: the ``M N L`` of ``DATA0.DAT`` count
-  nodes, one more.
+* ``mesh.modules`` counts **modules** (cubes) along x, y and z. The property
+  ``nModules`` of ``ldem.Parameters`` counts **nodes**, one more along each
+  axis: ``modules = [5, 2, 2]`` is ``nModules = [6 3 3]``.
 * ``time.step = auto`` (or no ``step``) takes 0.9 times the critical step.
 * Every error names the file, the line, the section and the key, and suggests
   the closest valid name for a mistyped one.
@@ -94,8 +104,8 @@ Rules of the format:
      - ``module_size``, ``modules``, ``perturbation`` (random displacement of
        the nodes, fraction of the module), ``seed`` (of the perturbation)
    * - ``[material]``
-     - ``law`` (``bilinear``, the legacy law, or ``linear_elastic``: no damage and no
-       rupture), ``young_modulus``, ``poisson_ratio``, ``density``,
+     - ``law`` (``bilinear``: elastic, softening and rupture; or ``linear_elastic``:
+       no damage and no rupture), ``young_modulus``, ``poisson_ratio``, ``density``,
        ``fracture_energy``, ``critical_distance``, ``failure_area_factor``
    * - ``[material.scatter]``
      - Scatter of the critical strain of the bars. ``type = "none"``;
@@ -105,7 +115,7 @@ Rules of the format:
    * - ``[time]``
      - ``step`` (or ``auto``), ``duration``
    * - ``[damping]``
-     - ``type`` (``mass_proportional``, the legacy damping, or ``none``),
+     - ``type`` (``mass_proportional`` or ``none``),
        ``initial``, ``final``, ``switch_time`` (not allowed with ``none``),
        ``constitutive``
    * - ``[scenario]``
@@ -125,7 +135,7 @@ Rules of the format:
        steps); ``0`` means never
 
 ``ldem.io.readCase`` returns the parameters, the scenario and the output
-options; ``ldem.Parameters.fromFile`` also accepts a case file. The list of
+options without running anything. The list of
 keys lives in one table, ``ldem.schema.caseSchema``, which drives the reader,
 the writer and the template. To add a scenario, add a line to
 ``ldem.scenarios.registry``. A new constitutive law is a subclass of

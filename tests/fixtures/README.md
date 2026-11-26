@@ -17,3 +17,11 @@ these files (relative tolerance 1e-9). The original code is not in the working
 tree; it is in the git history under the tag `legacy-reference`, together with
 the tools that generated the fixtures (`tests/tools/generateReference.m`).
 Change a fixture only on purpose, and say why in the pull request.
+
+`arquivo_3lc_rnao_cv05` (11 MB) is the random field of the critical strain
+that those simulations read: one multiplier per bar, written by the original
+script `Aleat_novo4.m` (coefficient of variation 0.05, correlation length 3
+modules). It has the defects of that script (mean 0.957, see
+`KNOWN_ISSUES.md`), so the examples generate their field with
+`ldem.material.generateRandomField` instead; it is kept only to reproduce
+the legacy runs.

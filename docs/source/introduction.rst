@@ -437,8 +437,8 @@ The ``ldem`` package
 
 Main parts of the package (see :doc:`api/index`):
 
-* ``ldem.Parameters`` / ``ldem.io.readCase`` / ``ldem.io.readInputFile`` – validated input data
-  (case files and the legacy ``DATA0.DAT``).
+* ``ldem.Parameters`` / ``ldem.io.readCase`` – validated input data, from MATLAB
+  code or from a case file.
 * ``ldem.run`` / ``ldem.sweep`` / ``ldem.check`` – run, sweep and check a case file.
 * ``ldem.mesh`` – nodes, bars, masses and bar geometry.
 * ``ldem.material`` – bar stiffness, critical strain and the bilinear damage law.

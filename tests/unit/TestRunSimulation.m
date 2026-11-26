@@ -169,28 +169,6 @@ classdef TestRunSimulation < LdemTestCase
             testCase.verifyEqual(a.energy, b.energy);
         end
 
-        function aRunFromAnInputFileMatchesTheEquivalentParameters(testCase)
-            testsDir = fullfile(testCase.RepoRoot, 'tests', 'tools');
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(testsDir));
-            cases = referenceCases();
-            c = cases(strcmp({cases.name}, 'tension101_elastic'));
-            path = fullfile(testCase.tempFolder(), "DATA0.DAT");
-            writeDataFile(path, c);
-
-            fromFile = ldem.runSimulation(ldem.Parameters.fromFile(path));
-            direct = ldem.runSimulation(ldem.Parameters( ...
-                testId = c.test, seed = c.seed, moduleLength = c.moduleLength, ...
-                nModules = c.modules, dampingInitial = c.damping1, dampingFinal = c.damping2, ...
-                dampingSwitchTime = c.dampingSwitchTime, constitutiveDamping = c.con, ...
-                dt = c.dt, totalTime = c.nSteps * c.dt, controlNodes = c.controlNodes, ...
-                youngModulus = c.youngModulus, density = c.density, poissonRatio = c.poisson, ...
-                fractureEnergy = c.fractureEnergy, criticalDistance = c.criticalDistance, ...
-                output = struct('snapshotEvery', c.ansysEvery, 'controlNodesEvery', c.everyN, ...
-                    'energyEvery', c.everyN, 'trackedBarEvery', 1)));
-            testCase.verifyEqual(fromFile.final.displacement, direct.final.displacement);
-            testCase.verifyEqual(fromFile.energy.kinetic, direct.energy.kinetic);
-        end
-
         function plotEnergyDrawsSixCurves(testCase)
             results = ldem.runSimulation(testCase.quickParams());
             fig = figure('Visible', 'off');

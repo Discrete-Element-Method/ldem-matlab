@@ -5,8 +5,7 @@ function text = writeCase(path, params, scenario, options)
 %   commented case file that ldem.io.readCase reads back into the same
 %   parameters and scenario, and returns its text. Every key is written, with
 %   units, so the file documents the model by itself. Use it to save what was
-%   run, to build a template, and (through ldem.io.convertLegacyInput) to
-%   convert a DATA0.DAT.
+%   run or to build a template.
 %
 %   text = ldem.io.writeCase("", params, scenario) only returns the text.
 %
@@ -35,8 +34,7 @@ function text = writeCase(path, params, scenario, options)
 %       p = ldem.Parameters(testId=101, nModules=[6 3 3]);
 %       ldem.io.writeCase("tension.ldem", p, ldem.scenarios.UniaxialTension());
 %
-%   See also ldem.io.readCase, ldem.io.convertLegacyInput,
-%   ldem.io.writeTemplate.
+%   See also ldem.io.readCase, ldem.io.writeTemplate.
 
 arguments
     path (1,1) string
@@ -305,11 +303,8 @@ t = "[" + strjoin('"' + letters + '"', ", ") + "]";
 end
 
 function note = docText(row)
-%DOCTEXT  Comment of a key: its description and the legacy variable it replaces.
+%DOCTEXT  Comment of a key: its description.
 note = string(row.doc);
-if row.legacy ~= ""
-    note = note + " Legacy: " + string(row.legacy) + ".";
-end
 end
 
 function lines = section(name, rows, withComments)

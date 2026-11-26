@@ -3,8 +3,8 @@ function text = writeKeyReference(path)
 %
 %   text = ldem.schema.writeKeyReference(path) builds the tables of keys that the
 %   user guide includes (docs/source/case-keys.inc): one table per section with
-%   the key, the kind of value and its units, the default, the variable of the
-%   legacy DATA0.DAT it replaces and the description. Everything comes from
+%   the key, the kind of value and its units, the default and the
+%   description. Everything comes from
 %   ldem.schema.caseSchema and the defaults of ldem.Parameters, so the guide
 %   cannot disagree with the reader. The text is reStructuredText.
 %
@@ -55,20 +55,15 @@ for section = unique(sections, 'stable')
         title = "[" + section + "]";
     end
     lines = [lines; ".. rubric:: ``" + title + "``"; ""; ...
-        ".. list-table::"; "   :header-rows: 1"; "   :widths: 18 24 12 8 38"; ""; ...
-        "   * - Key"; "     - Value"; "     - Default"; "     - Legacy"; "     - Description"]; %#ok<AGROW>
+        ".. list-table::"; "   :header-rows: 1"; "   :widths: 18 26 14 42"; ""; ...
+        "   * - Key"; "     - Value"; "     - Default"; "     - Description"]; %#ok<AGROW>
     for k = find(sections == section)
         row = schema(k);
         key = extractAfter(paths(k), strlength(section) + double(section ~= ""));
-        legacy = string(row.legacy);
-        if legacy == ""
-            legacy = "(none)";
-        end
         lines = [lines; ...
             "   * - ``" + key + "``"; ...
             "     - " + escape(valueText(row)); ...
             "     - " + escape(defaultText(row, defaults)); ...
-            "     - " + escape(legacy); ...
             "     - " + escape(string(row.doc))]; %#ok<AGROW>
     end
     lines = [lines; ""]; %#ok<AGROW>

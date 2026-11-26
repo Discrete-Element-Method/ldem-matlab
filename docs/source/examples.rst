@@ -40,10 +40,9 @@ From MATLAB, from any folder:
    >> run('examples/example1_clamped_beam/runClampedBeam.m')           % script: run and plot
    >> results = ldem.run('examples/example1_clamped_beam/case.ldem');  % from the case file
 
-The two beam examples also have a ``case.ldem``: the same model in the readable
-case-file format (see :doc:`usage`), generated from the ``DATA0.DAT`` of the
-original program and giving the same parameters. ``ldem.check`` shows what a
-case file would simulate without running it.
+The two beam examples are described by a ``case.ldem``: the model in the readable
+case-file format (see :doc:`usage`). ``ldem.check`` shows what a case file would
+simulate without running it.
 
 The scripts write their files to a folder ``output`` next to the script (ignored
 by git), or to ``outputFolder`` if that variable already exists:
@@ -86,8 +85,9 @@ The model
        energy 0.5 N/m, critical distance 4.5 mm; mass-proportional damping of
        2500 1/s
    * - Scatter
-     - One multiplier of the critical strain per bar, read from a file (shared with
-       ``beam_102``)
+     - One multiplier of the critical strain per bar, generated in memory: Weibull
+       values with mean 1 and a coefficient of variation of 0.05, correlated over 3
+       modules (seed 515)
    * - Time
      - 2.8 ms in 8000 steps of 0.35 us (65 % of the critical step)
    * - Recorded
@@ -110,10 +110,8 @@ Files
    * - ``case.ldem``
      - The model as a case file: run it with ``ldem.run``
    * - ``runClampedBeam.m``
-     - Reads ``DATA0.DAT``, runs the simulation and plots the force on the clamped
+     - Reads ``case.ldem``, runs the simulation and plots the force on the clamped
        ends, the vertical displacement of the control nodes and the energies
-   * - ``DATA0.DAT``
-     - The parameters in the format of the original program (``TEST 103``)
 
 The scenario and the load are the lines of the ``[scenario]`` section of
 ``case.ldem``:
@@ -220,14 +218,14 @@ breaks the beam; each run takes about 50 s:
      - Damaged bars (including broken)
      - Broken bars
    * - 10 kN/s
-     - 5,630
-     - 3,584
+     - 5,728
+     - 3,500
    * - 30 kN/s
-     - 6,074
-     - 3,579
+     - 5,653
+     - 3,348
    * - 100 kN/s
-     - 4,760
-     - 2,783
+     - 4,737
+     - 2,729
 
 After the failure the loaded nodes keep being pushed by the force and move freely,
 so the displacements of these runs are not meaningful; the damage counts are. Each run
@@ -235,8 +233,8 @@ has its own folder (``run_001``, ...) with its results and its resolved ``case.l
 and the table is also saved as ``sweep_summary.csv``.
 
 Other changes to try in ``case.ldem``: ``law = "linear_elastic"`` (no damage at all),
-``type = "generated"`` with a ``cv`` in ``[material.scatter]`` to generate the random
-field in memory instead of reading it, or ``type = "none"`` to remove the scatter.
+another ``cv`` or ``seed`` in ``[material.scatter]`` for another random field, or
+``type = "none"`` to remove the scatter.
 
 Example: uniaxial prism
 -----------------------
@@ -285,7 +283,8 @@ mm), 166,961 nodes and 1,126,960 bars. The beam rests on two supports 4.5 module
 from its ends and two load points 33.5 modules from its ends push its top face down
 with a prescribed velocity of 4 mm/s. The material is E = 32 GPa, density 2000
 kg/m\ :sup:`3`, fracture energy 50 N/m, critical distance 28 mm, with a random field
-of the critical strain read from a file.
+of the critical strain generated in memory (coefficient of variation 0.05, correlated
+over 3 modules).
 
 The real simulation has 150,000 steps (0.03 s in steps of 0.2 us) and needs roughly
 20 hours on a laptop (about 0.5 s per step). The script therefore runs only the first
@@ -301,11 +300,6 @@ the full run.
    * - File
      - Purpose
    * - ``case.ldem``
-     - The same parameters as a case file (``ldem.io.readCase``, ``ldem.run``)
-   * - ``DATA0.DAT``
-     - Parameters in the format of the original program (``ldem.Parameters.fromFile``)
-   * - ``arquivo_3lc_rnao_cv05``
-     - Random field applied to the critical strain of each bar (11 MB); it is also used
-       by ``example1_clamped_beam``
+     - The parameters as a case file (``ldem.io.readCase``, ``ldem.run``)
    * - ``runBeam.m``
-     - Reads the input, runs the first 50 steps and plots the reaction force
+     - Reads ``case.ldem``, runs the first 50 steps and plots the reaction force

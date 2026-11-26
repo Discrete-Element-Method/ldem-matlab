@@ -59,8 +59,7 @@ function c = readCase(path, options)
 %       c = ldem.io.readCase("examples/example1_clamped_beam/case.ldem");
 %       results = ldem.runSimulation(c.params, Scenario=c.scenario);
 %
-%   See also ldem.run, ldem.check, ldem.io.writeCase,
-%   ldem.io.convertLegacyInput, ldem.Parameters.fromFile.
+%   See also ldem.run, ldem.check, ldem.io.writeCase.
 
 arguments
     path (1,1) string
@@ -458,7 +457,7 @@ if ~(isnumeric(v) && numel(v) == 3 && all(v >= 1) && all(v == fix(v)))
     ldem.schema.raise('ldem:case:badValue', where, ...
         'Expected three integers >= 1 (modules along x, y and z), found %s.', describe(v));
 end
-values.nModules = reshape(v, 1, 3) + 1;     % the legacy M N L count nodes
+values.nModules = reshape(v, 1, 3) + 1;     % Parameters.nModules counts nodes
 origin.nModules = where;
 end
 
