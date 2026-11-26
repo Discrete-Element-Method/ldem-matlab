@@ -7,8 +7,6 @@ function writeTextFile(path, lines)
 %   Inputs:
 %     path   Full path of the file.
 %     lines  String array or cell array of lines.
-%
-%   See also writeDataFile.
 
 arguments
     path (1,1) string

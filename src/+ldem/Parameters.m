@@ -9,8 +9,7 @@ classdef Parameters
     %
     %       p = ldem.Parameters(testId=102, nModules=[70 4 3], dt=2e-7);
     %
-    %   p = ldem.Parameters.fromFile("DATA0.DAT") reads the legacy input
-    %   file format, see ldem.io.readInputFile.
+    %   A case file (.ldem) gives the same object: ldem.io.readCase(path).params.
     %
     %   Every property is validated when it is assigned (type, size and
     %   range). Rules that involve several properties, such as the
@@ -19,140 +18,126 @@ classdef Parameters
     %
     %   Units are SI (m, s, kg, Pa, N) unless stated otherwise.
     %
-    %   Legacy names: the comment on each property gives the variable of the
-    %   original code (DATA0.DAT / global variables) it replaces.
-    %
-    %   See also ldem.io.readInputFile, ldem.runSimulation.
+    %   See also ldem.io.readCase, ldem.runSimulation.
 
     properties
         % Test identifier selecting the boundary conditions and loads
         % (101 = uniaxial tension, 102 = four-point bending, 103 = beam
-        % clamped at both ends loaded with a force). Legacy: TEST.
+        % clamped at both ends loaded with a force).
         testId (1,1) double {mustBeInteger, mustBePositive} = 101
 
         % Seed of the random number generator used for the optional mesh
-        % perturbation. Legacy: SEED.
+        % perturbation.
         seed (1,1) double {mustBeInteger, mustBeNonnegative} = 123
 
-        % Edge length of the cubic module [m]. Legacy: LCO.
+        % Edge length of the cubic module [m].
         moduleLength (1,1) double {mustBePositive, mustBeFinite} = 0.003
 
         % Number of nodes along x, y and z of the prism, [M N L]; the prism
-        % has (M-1)*(N-1)*(L-1) cubic modules. Legacy: M, N, L.
+        % has (M-1)*(N-1)*(L-1) cubic modules.
         nModules (1,3) double {mustBeInteger, mustBeGreaterThanOrEqual(nModules, 2)} = [6 3 3]
 
         % Mass-proportional damping coefficient before the switch time
-        % [1/s]. Legacy: DF1.
+        % [1/s].
         dampingInitial (1,1) double {mustBeNonnegative, mustBeFinite} = 25000
 
         % Mass-proportional damping coefficient after the switch time
-        % [1/s]. Legacy: DF2.
+        % [1/s].
         dampingFinal (1,1) double {mustBeNonnegative, mustBeFinite} = 25000
 
         % Time at which the damping changes from dampingInitial to
-        % dampingFinal [s]. Legacy: TDAF.
+        % dampingFinal [s].
         dampingSwitchTime (1,1) double {mustBeNonnegative, mustBeFinite} = 0.015
 
         % Damping coefficient inside the constitutive law, proportional to
-        % the stiffness [s]. Legacy: CON.
+        % the stiffness [s].
         constitutiveDamping (1,1) double {mustBeNonnegative, mustBeFinite} = 0
 
         % Constitutive law of the bars: a name of ldem.material.lawRegistry
-        % ("bilinear", the legacy law, or "linear_elastic"). Checked by
-        % validate().
+        % ("bilinear" or "linear_elastic"). Checked by validate().
         constitutiveLaw (1,1) string = "bilinear"
 
         % Damping model of the nodes: a name of ldem.solver.dampingRegistry
-        % ("mass_proportional", the legacy damping, or "none"). Checked by
-        % validate().
+        % ("mass_proportional" or "none"). Checked by validate().
         dampingModel (1,1) string = "mass_proportional"
 
-        % Integration time step [s]. Legacy: DT.
+        % Integration time step [s].
         dt (1,1) double {mustBePositive, mustBeFinite} = 2e-7
 
-        % Total simulated time [s]. Legacy: TTOT.
+        % Total simulated time [s].
         totalTime (1,1) double {mustBePositive, mustBeFinite} = 4e-5
 
         % Node numbers of the control points whose motion is recorded, as a
-        % row vector (at most 10). Legacy: INCO, NCON.
+        % row vector (at most 10).
         controlNodes (1,:) double {mustBeInteger, mustBePositive} = [1 2]
 
-        % Young's modulus [Pa]. Legacy: YNG.
+        % Young's modulus [Pa].
         youngModulus (1,1) double {mustBePositive, mustBeFinite} = 32e9
 
-        % Mass density [kg/m^3]. Legacy: ROH.
+        % Mass density [kg/m^3].
         density (1,1) double {mustBePositive, mustBeFinite} = 2000
 
         % Poisson's ratio, from 0 up to (not including) 0.5. The upper
-        % limit is checked by validate(). Legacy: PSN.
+        % limit is checked by validate().
         poissonRatio (1,1) double {mustBeNonnegative, mustBeFinite} = 0.25
 
-        % Specific fracture energy [N/m]. Legacy: GFR.
+        % Specific fracture energy [N/m].
         fractureEnergy (1,1) double {mustBePositive, mustBeFinite} = 50
 
-        % Equivalent (critical) distance [m]. Legacy: DEQ.
+        % Equivalent (critical) distance [m].
         criticalDistance (1,1) double {mustBePositive, mustBeFinite} = 0.028
 
         % Fraction of the module face that fails per bar (area of failure is
-        % failureAreaFactor*length). Legacy: CAF, hardcoded to 0.1385.
+        % failureAreaFactor*length).
         failureAreaFactor (1,1) double {mustBePositive, mustBeFinite} = 0.1385
 
         % Number of the bar whose strain history is recorded.
-        % Legacy: hardcoded 7014 in CABAR and ENERG2.
         trackedBar (1,1) double {mustBeInteger, mustBePositive} = 7014
 
         % Text file with one multiplier of the critical strain per bar
         % (random field). Empty means "no random field" (all multipliers 1)
-        % unless randomFieldCv is positive. Legacy: file
-        % "arquivo_3lc_rnao_cv05".
+        % unless randomFieldCv is positive.
         randomFieldFile (1,1) string = ""
 
         % Coefficient of variation of the random field generated in memory
         % (see ldem.material.generateRandomField). 0 (the default) generates
         % nothing; a positive value, between 1e-4 and 3, generates the field
-        % and cannot be combined with randomFieldFile. Legacy: Cv of
-        % Aleat_novo4.m (0.05 for "arquivo_3lc_rnao_cv05").
+        % and cannot be combined with randomFieldFile.
         randomFieldCv (1,1) double {mustBeNonnegative, mustBeFinite} = 0
 
         % Correlation length of the generated random field, that is the
         % spacing of its pole grid, in module lengths (multiples of
-        % moduleLength): a scalar or [x y z]. Legacy: lcorx, lcory, lcorz
-        % of Aleat_novo4.m divided by Lc ("3lc" means 3).
+        % moduleLength): a scalar or [x y z].
         randomFieldCorrelationLength (1,:) double {mustBePositive, mustBeFinite} = 3
 
         % Seed of the random numbers of the generated random field.
-        % Legacy: semente of Aleat_novo4.m.
         randomFieldSeed (1,1) double {mustBeInteger, mustBeNonnegative} = 515
 
         % Random perturbation of the node coordinates, as the standard
         % deviation expressed as a fraction of the module length. 0 (the
         % default) switches the perturbation off; any positive value
         % switches it on with that value (for example 0.02 displaces the
-        % nodes by about 2 % of the module length). Legacy: LABELN (always
-        % 0, so the legacy results have no perturbation) and CVUVW = 0.02.
+        % nodes by about 2 % of the module length).
         meshPerturbation (1,1) double {mustBeNonnegative, mustBeFinite} = 0
 
         % How often each result is stored, in time steps (0 = never):
         %
-        % * snapshotEvery: ANSYS/VTK files and full-field snapshots (OU3).
-        % * controlNodesEvery: control nodes and reactions (OU6).
-        % * energyEvery: global energies (OU8).
-        % * trackedBarEvery: tracked bar, 0 or 1; the legacy code stores it
-        %   at every step when OU9 > 0 (OU9).
+        % * snapshotEvery: ANSYS/VTK files and full-field snapshots.
+        % * controlNodesEvery: control nodes and reactions.
+        % * energyEvery: global energies.
+        % * trackedBarEvery: tracked bar, 0 (off) or 1 (every step).
         output (1,1) struct = struct('snapshotEvery', 0, ...
             'controlNodesEvery', 10, 'energyEvery', 10, 'trackedBarEvery', 0)
     end
 
     properties (Dependent, SetAccess = private)
-        % Number of time steps, round(totalTime/dt). Legacy: NSTEP.
+        % Number of time steps, round(totalTime/dt).
         nSteps
 
         % Step at which the damping changes, round(dampingSwitchTime/dt).
-        % Legacy: NDAMF.
         dampingSwitchStep
 
         % Total number of nodes: grid nodes plus module-centre nodes.
-        % Legacy: NNT.
         nNodes
 
         % Elastic wave speed sqrt(E/rho) [m/s].
@@ -298,45 +283,6 @@ classdef Parameters
         function value = get.criticalTimeStep(obj)
             shortestBar = obj.moduleLength * sqrt(3) / 2;
             value = shortestBar / obj.waveSpeed;
-        end
-    end
-
-    methods (Static)
-        function obj = fromFile(path, overrides)
-            %FROMFILE  Read an input file: a case file or the legacy DATA0.DAT.
-            %
-            %   p = ldem.Parameters.fromFile(path) reads the file and
-            %   returns a validated parameter set. A path ending in .ldem or
-            %   .json is a case file (see ldem.io.readCase, which also gives
-            %   the scenario and the output options); any other file is read
-            %   in the legacy DATA0.DAT format.
-            %
-            %   p = ldem.Parameters.fromFile(path, Name=Value) additionally
-            %   overrides properties that are not stored in the file, for
-            %   example randomFieldFile or trackedBar.
-            %
-            %   See also ldem.io.readCase, ldem.io.readInputFile.
-            arguments
-                path (1,1) string
-                overrides.?ldem.Parameters
-            end
-            [~, ~, extension] = fileparts(path);
-            if any(lower(extension) == [".ldem" ".json"])
-                obj = ldem.io.readCase(path).params;
-                names = fieldnames(overrides);
-                for k = 1:numel(names)
-                    obj.(names{k}) = overrides.(names{k});
-                end
-                obj.validate();
-                return
-            end
-            fromFile = ldem.io.readInputFile(path);
-            names = fieldnames(overrides);
-            for k = 1:numel(names)
-                fromFile.(names{k}) = overrides.(names{k});
-            end
-            args = namedargs2cell(fromFile);
-            obj = ldem.Parameters(args{:});
         end
     end
 end

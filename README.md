@@ -16,17 +16,17 @@ quasi-brittle materials (concrete, rocks).
 
 | Path | Content |
 |------|---------|
-| `src/+ldem/` | The `ldem` package (refactored code) |
+| `src/+ldem/` | The `ldem` package: all the code |
 | `tests/` | `matlab.unittest` test suite |
-| `docs/` | Sphinx documentation (English and Spanish), API generated from the `.m` files |
-| `examples/` | How to run the example simulations |
+| `docs/` | Sphinx documentation in English, translated into Spanish, Portuguese and Italian; the API is generated from the `.m` files |
+| `examples/` | Three example models, each with its case file or script |
 
 ### Quick start
 
 ```matlab
 >> setup_path          % adds src/ to the MATLAB path
->> run('examples/tension_101/runTension.m')   % small example, output in examples/tension_101/output
->> run('examples/example1_clamped_beam/runClampedBeam.m')   % beam clamped at both ends
+>> results = ldem.run('examples/example1_clamped_beam/case.ldem');   % run a case file
+>> run('examples/tension_101/runTension.m')   % small example written in MATLAB, output in examples/tension_101/output
 ```
 
 Run the tests:
@@ -48,7 +48,7 @@ python docs/tools/build_docs.py
 ```
 
 Comments are written in English (the original code is in the git history under
-the tag `legacy-reference`); the guides are available in English and Spanish. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
+the tag `legacy-reference`); the guides are in English, translated into Spanish, Portuguese and Italian. See [CONTRIBUTING.md](CONTRIBUTING.md) for the docstring
 convention.
 
 ### Citation
@@ -69,17 +69,17 @@ quase-frágeis (concreto, rochas).
 
 | Caminho | Conteúdo |
 |---------|----------|
-| `src/+ldem/` | O pacote `ldem` (código refatorado) |
+| `src/+ldem/` | O pacote `ldem`: todo o código |
 | `tests/` | Suíte de testes com `matlab.unittest` |
-| `docs/` | Documentação Sphinx (espanhol e inglês), API gerada a partir dos `.m` |
-| `examples/` | Como executar as simulações de exemplo |
+| `docs/` | Documentação Sphinx em inglês, traduzida para espanhol, português e italiano; a API é gerada a partir dos `.m` |
+| `examples/` | Três modelos de exemplo, cada um com seu arquivo de caso ou script |
 
 ### Início rápido
 
 ```matlab
 >> setup_path          % adiciona src/ ao path do MATLAB
->> run('examples/tension_101/runTension.m')   % exemplo pequeno, saída em examples/tension_101/output
->> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga biengastada
+>> results = ldem.run('examples/example1_clamped_beam/case.ldem');   % executa um arquivo de caso
+>> run('examples/tension_101/runTension.m')   % exemplo pequeno escrito em MATLAB, saída em examples/tension_101/output
 ```
 
 Executar os testes:
@@ -100,7 +100,7 @@ python docs/tools/build_docs.py
 ```
 
 Os comentários estão em inglês (o código original está no histórico do git, na
-tag `legacy-reference`); os guias estão em espanhol e inglês. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
+tag `legacy-reference`); os guias estão em inglês, traduzidos para espanhol, português e italiano. Veja [CONTRIBUTING.md](CONTRIBUTING.md) para a convenção de docstrings.
 
 ### Citação
 
@@ -120,17 +120,17 @@ cuasi-frágiles (hormigón, rocas).
 
 | Ruta | Contenido |
 |------|-----------|
-| `src/+ldem/` | El paquete `ldem` (código refactorizado) |
+| `src/+ldem/` | El paquete `ldem`: todo el código |
 | `tests/` | Suite de tests con `matlab.unittest` |
-| `docs/` | Documentación Sphinx (español e inglés), API generada desde los `.m` |
-| `examples/` | Cómo ejecutar las simulaciones de ejemplo |
+| `docs/` | Documentación Sphinx en inglés, traducida al español, portugués e italiano; la API se genera desde los `.m` |
+| `examples/` | Tres modelos de ejemplo, cada uno con su archivo de caso o script |
 
 ### Inicio rápido
 
 ```matlab
 >> setup_path          % agrega src/ al path de MATLAB
->> run('examples/tension_101/runTension.m')   % ejemplo pequeño, salida en examples/tension_101/output
->> run('examples/example1_clamped_beam/runClampedBeam.m')   % viga empotrada en ambos extremos
+>> results = ldem.run('examples/example1_clamped_beam/case.ldem');   % ejecuta un archivo de caso
+>> run('examples/tension_101/runTension.m')   % ejemplo pequeño escrito en MATLAB, salida en examples/tension_101/output
 ```
 
 Ejecutar los tests:
@@ -151,7 +151,7 @@ python docs/tools/build_docs.py
 ```
 
 Los comentarios están en inglés (el código original está en el historial de git,
-etiqueta `legacy-reference`); las guías están en español e inglés. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
+etiqueta `legacy-reference`); las guías están en inglés, traducidas al español, portugués e italiano. Ver [CONTRIBUTING.md](CONTRIBUTING.md) para la convención de docstrings.
 
 ### Cita
 

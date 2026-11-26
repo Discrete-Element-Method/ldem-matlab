@@ -21,7 +21,7 @@ function field = readRandomField(path, nBars)
 %     ldem:io:randomFieldInvalid   A value is not finite and positive.
 %
 %   Example:
-%       field = ldem.io.readRandomField("examples/beam_102/arquivo_3lc_rnao_cv05", 6221);
+%       field = ldem.io.readRandomField("tests/fixtures/arquivo_3lc_rnao_cv05", 6221);
 %
 %   Legacy: the loop that reads "arquivo_3lc_rnao_cv05" in the main program.
 %

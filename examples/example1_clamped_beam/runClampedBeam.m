@@ -5,8 +5,8 @@
 % (8000 steps).
 %
 % What it does
-%   1. Reads the input file DATA0.DAT of this folder (test 103, see
-%      ldem.scenarios.ClampedBeam) and adds what the file does not contain.
+%   1. Reads the case file case.ldem of this folder (test 103, see
+%      ldem.scenarios.ClampedBeam).
 %   2. Runs the simulation, writing results.mat, ANSYS macro files and a VTK
 %      series (open snapshots.pvd in ParaView).
 %   3. Plots the force carried by the clamped ends, the vertical displacement
@@ -17,28 +17,26 @@
 % already exists in the workspace.
 
 here = fileparts(mfilename('fullpath'));
-repoRoot = fileparts(fileparts(here));
-addpath(fullfile(repoRoot, 'src'));
+addpath(fullfile(fileparts(fileparts(here)), 'src'));
 if ~exist('outputFolder', 'var')
     outputFolder = fullfile(here, 'output');
 end
 
 %% 1. Parameters
-% fromFile reads DATA0.DAT. The random field that varies the critical strain
-% of each bar is shared with the beam_102 example; trackedBar selects the bar
-% whose strain and force are stored at every step.
-params = ldem.Parameters.fromFile(fullfile(here, 'DATA0.DAT'), ...
-    randomFieldFile = fullfile(repoRoot, 'examples', 'beam_102', 'arquivo_3lc_rnao_cv05'), ...
-    trackedBar      = 14398);
+% readCase reads case.ldem. The random field that varies the critical strain
+% of each bar is generated from [material.scatter]; [monitor.bar] selects the
+% bar whose strain and force are stored at every step.
+c = ldem.io.readCase(fullfile(here, 'case.ldem'));
+params = c.params;
 
 fprintf('Clamped beam with %d nodes, %d steps.\n', params.nNodes, params.nSteps);
 
 %% 2. Scenario
-% Test 103 is registered for testId = 103, so runSimulation would find it by
-% itself. It is created here to show the load: a force of
+% The [scenario] section of case.ldem sets the load: a force of
 % forceRate*min(t, rampTime) newtons on each node of the loaded line. Change
-% the values to try other loads, for example forceRate=2000.
-scenario = ldem.scenarios.ClampedBeam(forceRate=1000, rampTime=0.00035);
+% the values here (or in the case file) to try other loads, for example
+% scenario.forceRate = 2000.
+scenario = c.scenario;
 
 %% 3. Run
 results = ldem.runSimulation(params, ...

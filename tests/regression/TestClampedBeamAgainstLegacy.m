@@ -88,7 +88,7 @@ classdef TestClampedBeamAgainstLegacy < LdemTestCase
         function [fixture, state, record] = runCase(testCase)
             fixture = testCase.loadFixture();
             c = fixture.caseDef;
-            fieldFile = fullfile(testCase.RepoRoot, 'examples', 'beam_102', 'arquivo_3lc_rnao_cv05');
+            fieldFile = fullfile(testCase.RepoRoot, 'tests', 'fixtures', 'arquivo_3lc_rnao_cv05');
             params = ldem.Parameters( ...
                 testId = 103, ...      % the legacy file says 102, see the class help
                 seed = c.seed, ...

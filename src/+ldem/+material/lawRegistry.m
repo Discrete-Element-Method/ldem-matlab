@@ -21,7 +21,7 @@ function reg = lawRegistry()
 
 reg = struct('name', {}, 'className', {}, 'description', {});
 reg(end+1) = makeEntry("bilinear", "ldem.material.BilinearBarLaw", ...
-    "Linear elastic, softening in tension down to rupture (legacy law)");
+    "Linear elastic, softening in tension down to rupture");
 reg(end+1) = makeEntry("linear_elastic", "ldem.material.LinearElasticBarLaw", ...
     "Linear elastic, no damage and no rupture");
 end

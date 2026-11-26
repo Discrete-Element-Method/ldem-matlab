@@ -32,11 +32,9 @@ Everything is a property of ``ldem.Parameters``:
 * ``dt`` must be below ``params.criticalTimeStep``; ``Parameters`` rejects an
   unstable value and says so.
 
-The same data can come from a case file (``ldem.io.readCase``, see
-:doc:`usage`) or from an input file in the format of the original
-program with ``ldem.Parameters.fromFile("DATA0.DAT", ...)``; extra
-name=value pairs override the file. The mesh can be built and inspected
-before running anything:
+The same object comes from a case file with
+``ldem.io.readCase(path).params`` (see :doc:`usage`). The mesh can be built and
+inspected before running anything:
 
 .. code-block:: matlab
 

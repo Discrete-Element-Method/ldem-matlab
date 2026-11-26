@@ -26,14 +26,15 @@ msgstr ""
 " exigem a R2022b. Nenhum toolbox é necessário."
 
 msgid ""
-"git clone <repository-url> ldem-matlab\n"
+"git clone https://github.com/Discrete-Element-Method/ldem-matlab.git\n"
 "cd ldem-matlab"
 msgstr ""
-"git clone <url-do-repositorio> ldem-matlab\n"
-"cd ldem-matlab"
 
-msgid ">> setup_path"
-msgstr ""
+msgid "Then, in MATLAB, from the ``ldem-matlab`` folder:"
+msgstr "Depois, no MATLAB, a partir da pasta ``ldem-matlab``:"
+
+msgid ">> setup_path        % adds src/ to the MATLAB path"
+msgstr ">> setup_path        % adiciona src/ ao path do MATLAB"
 
 msgid "Check the installation with the fast tests:"
 msgstr "Verifique a instalação com os testes rápidos:"

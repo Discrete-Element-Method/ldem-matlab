@@ -1,5 +1,5 @@
 classdef TestWriteCase < LdemTestCase
-    %TESTWRITECASE  Unit tests of ldem.io.writeCase, writeTemplate and convertLegacyInput.
+    %TESTWRITECASE  Unit tests of ldem.io.writeCase and ldem.io.writeTemplate.
 
     properties (Access = private)
         Folder (1,1) string
@@ -69,26 +69,6 @@ classdef TestWriteCase < LdemTestCase
                 strrep(string(fullfile(testCase.Folder, "shared", "field.txt")), '\', '/'));
         end
 
-        function exampleCaseFilesMatchTheirDataFiles(testCase)
-            examples = fullfile(testCase.RepoRoot, "examples");
-            field = fullfile(examples, "beam_102", "arquivo_3lc_rnao_cv05");
-            legacy = ldem.Parameters.fromFile(fullfile(examples, "beam_102", "DATA0.DAT"), ...
-                randomFieldFile = field);
-            c = ldem.io.readCase(fullfile(examples, "beam_102", "case.ldem"));
-            testCase.verifyEqual(testCase.normalizePaths(c.params.toStruct()), ...
-                testCase.normalizePaths(legacy.toStruct()));
-            testCase.verifyClass(c.scenario, 'ldem.scenarios.FourPointBending');
-
-            legacy = ldem.Parameters.fromFile(fullfile(examples, "example1_clamped_beam", "DATA0.DAT"), ...
-                randomFieldFile = field, trackedBar = 14398);
-            c = ldem.io.readCase(fullfile(examples, "example1_clamped_beam", "case.ldem"));
-            testCase.verifyEqual(testCase.normalizePaths(c.params.toStruct()), ...
-                testCase.normalizePaths(legacy.toStruct()));
-            testCase.verifyClass(c.scenario, 'ldem.scenarios.ClampedBeam');
-            testCase.verifyEqual(c.scenario.forceRate, 1000);
-            testCase.verifyEqual(c.scenario.rampTime, 0.00035);
-        end
-
         function trackedBarIsACommentWhenOff(testCase)
             p = ldem.Parameters(trackedBar = 55);
             text = ldem.io.writeCase("", p);
@@ -118,7 +98,7 @@ classdef TestWriteCase < LdemTestCase
             p = ldem.Parameters();
             withComments = ldem.io.writeCase("", p);
             without = ldem.io.writeCase("", p, [], Comments = false);
-            testCase.verifySubstring(withComments, "Legacy: YNG");
+            testCase.verifySubstring(withComments, "# Young's modulus.");
             testCase.verifyFalse(contains(without, "#"));
             c = testCase.readBack(without, "plain.ldem");
             testCase.verifyEqual(c.params.toStruct(), p.toStruct());
@@ -168,41 +148,6 @@ classdef TestWriteCase < LdemTestCase
             end
         end
 
-        function legacyExamplesConvertToTheSameParameters(testCase)
-            for name = ["beam_102" "example1_clamped_beam"]
-                dataFile = fullfile(testCase.RepoRoot, "examples", name, "DATA0.DAT");
-                path = fullfile(testCase.Folder, name + ".ldem");
-                ldem.io.convertLegacyInput(dataFile, path);
-                fromCase = ldem.io.readCase(path);
-                legacy = ldem.Parameters.fromFile(dataFile);
-                testCase.verifyEqual(fromCase.params.toStruct(), legacy.toStruct(), name);
-                testCase.verifyClass(fromCase.scenario, class(ldem.scenarios.fromTestId(legacy.testId)));
-                testCase.verifyEqual(ldem.Parameters.fromFile(path).toStruct(), legacy.toStruct(), name);
-            end
-        end
-
-        function theConverterNeverGuessesTheTrackedBar(testCase)
-            dataFile = fullfile(testCase.RepoRoot, "examples", "example1_clamped_beam", "DATA0.DAT");
-            text = ldem.io.convertLegacyInput(dataFile, "");
-            testCase.verifySubstring(text, "The legacy value OU2 was 14398");
-            c = testCase.readBack(text, "ou2.ldem");
-            testCase.verifyEqual(c.params.trackedBar, ldem.Parameters().trackedBar);
-        end
-
-        function converterOptionsAreApplied(testCase)
-            dataFile = fullfile(testCase.RepoRoot, "examples", "example1_clamped_beam", "DATA0.DAT");
-            field = fullfile(testCase.Folder, "field.txt");
-            path = fullfile(testCase.Folder, "conv.ldem");
-            ldem.io.convertLegacyInput(dataFile, path, RandomFieldFile = field, TrackedBar = 14398, ...
-                Title = "Beam", Authors = "Rodrigo", OutputFolder = "out");
-            c = ldem.io.readCase(path);
-            testCase.verifyEqual(c.params.trackedBar, 14398);
-            testCase.verifyEqual(c.params.output.trackedBarEvery, 1);
-            testCase.verifyEqual(string(c.params.randomFieldFile), string(fullfile(testCase.Folder, "field.txt")));
-            testCase.verifyEqual(c.info.title, "Beam");
-            testCase.verifyEqual(c.info.authors, "Rodrigo");
-        end
-
         function aScenarioOutsideTheRegistryIsRefused(testCase)
             testCase.verifyError(@() ldem.io.writeCase("", ldem.Parameters(), TestWriteCase.unregistered()), ...
                 'ldem:io:unregisteredScenario');
@@ -210,11 +155,6 @@ classdef TestWriteCase < LdemTestCase
     end
 
     methods (Access = private)
-        function s = normalizePaths(~, s)
-            % The random-field path may differ in separators (\ or /) and in ..
-            s.randomFieldFile = string(java.io.File(char(s.randomFieldFile)).getCanonicalPath());
-        end
-
         function c = readBack(testCase, text, name)
             path = fullfile(testCase.Folder, name);
             writeTextFile(path, splitlines(string(text)));

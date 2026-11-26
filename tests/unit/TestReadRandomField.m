@@ -42,7 +42,7 @@ classdef TestReadRandomField < LdemTestCase
         end
 
         function readsTheBundledExample(testCase)
-            path = fullfile(testCase.RepoRoot, 'examples', 'beam_102', 'arquivo_3lc_rnao_cv05');
+            path = fullfile(testCase.RepoRoot, 'tests', 'fixtures', 'arquivo_3lc_rnao_cv05');
             field = ldem.io.readRandomField(path, 1000);
             testCase.verifySize(field, [1000 1]);
             testCase.verifyGreaterThan(min(field), 0);

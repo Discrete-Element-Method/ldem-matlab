@@ -27,9 +27,9 @@ Outputs are written to an `output/` folder next to the script (ignored by git):
 
 ## Case files
 
-The two beam examples have a `case.ldem` next to their `DATA0.DAT`: the same model in
-the readable case-file format (named keys, units, comments, the scenario and the output
-files in one place). It is generated from the `DATA0.DAT` and gives the same parameters.
+The two beam examples are described by a `case.ldem`: the model in the readable
+case-file format (named keys, units, comments, the scenario and the output files in one
+place).
 
 ```matlab
 >> ldem.check('examples/example1_clamped_beam/case.ldem')    % what would be simulated
@@ -41,13 +41,14 @@ files in one place). It is generated from the `DATA0.DAT` and gives the same par
 | Folder | File | Purpose |
 |--------|------|---------|
 | `example1_clamped_beam/` | `case.ldem` | The model as a case file |
-| | `runClampedBeam.m` | Reads `DATA0.DAT`, runs, and plots the force on the clamped ends, the vertical displacement of the control nodes and the energies |
-| | `DATA0.DAT` | Parameters in the format of the original program (`TEST 103`) |
+| | `runClampedBeam.m` | Reads `case.ldem`, runs, and plots the force on the clamped ends, the vertical displacement of the control nodes and the energies |
 | `tension_101/` | `runTension.m` | Describes the model with `ldem.Parameters`, runs it and plots the energies |
 | `beam_102/` | `case.ldem` | The model as a case file |
-| | `runBeam.m` | Reads the input, runs the first 50 steps and plots the reaction |
-| | `DATA0.DAT` | Parameters in the format of the original program (`TEST 102`) |
-| | `arquivo_3lc_rnao_cv05` | Random field of the critical strain of each bar (11 MB); `example1_clamped_beam` uses it too |
+| | `runBeam.m` | Reads `case.ldem`, runs the first 50 steps and plots the reaction |
+
+The random field of the critical strain of the two beams is generated in memory from the
+`[material.scatter]` section of their `case.ldem` (coefficient of variation 0.05,
+correlated over 3 modules); no file is needed.
 
 With the default values the clamped beam stays elastic (no bar softens). Raise the
 force (`force_rate` in `case.ldem`, `forceRate` in the scenario) or lower the fracture

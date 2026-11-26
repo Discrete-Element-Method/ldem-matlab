@@ -1,6 +1,30 @@
 # Changelog
 
 ## [Unreleased]
+### Removed
+- Support for the input file of the original program (`DATA0.DAT`):
+  `ldem.io.readInputFile`, `ldem.io.convertLegacyInput`, `ldem.Parameters.fromFile` and the
+  `DATA0.DAT` of the examples. A model is described by a case file (`ldem.io.readCase`,
+  `ldem.run`) or by `ldem.Parameters` in MATLAB code.
+- The names of the variables of the original program (`Legacy: DT`, `YNG`, `OU3`, ...) from
+  the comments of `ldem.Parameters`, the `legacy` field of `ldem.schema.caseSchema`, the
+  comments that `ldem.io.writeCase` writes and the *Legacy* column of the key reference. The
+  help of each function still names the routine of the original program it replaces, and the
+  regression tests still compare with that program.
+
+### Changed
+- `beam_102/runBeam.m` and `example1_clamped_beam/runClampedBeam.m` read their `case.ldem`,
+  the only description of each model.
+- The *Usage* page starts with running a case file (`ldem.run`), then MATLAB code; the
+  README quick start runs a case file; the README describes the documentation languages
+  correctly (English, translated into Spanish, Portuguese and Italian).
+- The two beam examples generate their random field in memory (`[material.scatter]
+  type = "generated"`, `cv = 0.05`, correlation length 3 modules, seed 515) instead of
+  reading `arquivo_3lc_rnao_cv05`, which came from the old `Aleat_novo4.m` script and
+  has its defects (mean 0.957 instead of 1). The 11 MB file moved to `tests/fixtures/`,
+  where the regression tests against the legacy code still read it. The damage counts of
+  the force-rate sweep of the clamped beam in the *Examples* page change accordingly.
+
 ### Added
 - Documentation of the examples (user guide page *Examples*, in the four languages): the model, files,
   how to run and what to expect of the bi-clamped beam (`example1_clamped_beam`), the uniaxial prism

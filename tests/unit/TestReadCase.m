@@ -286,16 +286,6 @@ classdef TestReadCase < LdemTestCase
             fromText = testCase.read(["[material]"; "young_modulus = 30 GPa"; ...
                 "[[monitor.node]]"; "id = 2"; "[[monitor.node]]"; "id = 7"]);
             testCase.verifyEqual(fromJson.params.toStruct(), fromText.params.toStruct());
-            testCase.verifyEqual(ldem.Parameters.fromFile(jsonPath).toStruct(), fromText.params.toStruct());
-        end
-
-        function fromFileReadsCaseFilesAndAppliesOverrides(testCase)
-            path = fullfile(testCase.Folder, "o.ldem");
-            writeTextFile(path, testCase.minimal());
-            p = ldem.Parameters.fromFile(path, trackedBar = 11, seed = 9);
-            testCase.verifyEqual(p.trackedBar, 11);
-            testCase.verifyEqual(p.seed, 9);
-            testCase.verifyEqual(p.nModules, [6 3 3]);
         end
 
         function unknownKeysAreSuggested(testCase)

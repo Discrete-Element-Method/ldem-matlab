@@ -7,12 +7,14 @@ suite and ``buildtool`` need R2022b. No toolbox is required.
 
 .. code-block:: bash
 
-   git clone <repository-url> ldem-matlab
+   git clone https://github.com/Discrete-Element-Method/ldem-matlab.git
    cd ldem-matlab
+
+Then, in MATLAB, from the ``ldem-matlab`` folder:
 
 .. code-block:: matlab
 
-   >> setup_path
+   >> setup_path        % adds src/ to the MATLAB path
 
 Check the installation with the fast tests:
 

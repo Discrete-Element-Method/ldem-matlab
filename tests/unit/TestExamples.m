@@ -4,8 +4,8 @@ classdef TestExamples < LdemTestCase
     %   The tension example is run completely. The clamped beam of example 1
     %   (3086 nodes, 8000 steps, about 1 minute) is also run completely and is
     %   tagged "Slow". The beam_102 example has about 167,000 nodes and 1.1
-    %   million bars, so its test only builds the model (reading DATA0.DAT and
-    %   the random field) without integrating; it is tagged "Slow" too.
+    %   million bars, so its test only builds the model (reading case.ldem and
+    %   generating the random field) without integrating; it is tagged "Slow" too.
 
     methods (Test, TestTags = {'Unit'})
         function tensionExampleRunsAndWritesItsFiles(testCase)
@@ -54,17 +54,15 @@ classdef TestExamples < LdemTestCase
             testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
         end
 
-        function beamExampleModelIsBuiltFromItsInputFile(testCase)
-            here = fullfile(testCase.RepoRoot, 'examples', 'beam_102');
-            params = ldem.Parameters.fromFile(fullfile(here, 'DATA0.DAT'), ...
-                randomFieldFile = fullfile(here, 'arquivo_3lc_rnao_cv05'));
+        function beamExampleModelIsBuiltFromItsCaseFile(testCase)
+            c = ldem.io.readCase(fullfile(testCase.RepoRoot, 'examples', 'beam_102', 'case.ldem'));
+            params = c.params;
             mesh = ldem.mesh.buildMesh(params);
             [barProps, history] = ldem.material.buildBarProperties(mesh, params);
 
             nBars = size(mesh.bars, 1);
             testCase.verifyEqual(size(mesh.nodes0, 1), params.nNodes);
-            testCase.verifyLessThanOrEqual(nBars, 1126960, ...
-                'The random field file has one value per bar.');
+            testCase.verifyEqual(nBars, 1126960);
             testCase.verifySize(barProps.criticalStrain, [nBars 1]);
             testCase.verifyGreaterThan(barProps.criticalStrainCv, 0);
             testCase.verifyTrue(all(history.isUnbroken));

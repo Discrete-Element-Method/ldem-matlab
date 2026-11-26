@@ -3,9 +3,9 @@ API reference
 
 Generated automatically from the comments of the ``.m`` files.
 
-The ``ldem`` package (``src/+ldem``) is the refactored code. It replaces the
-original routines, which are kept in the git history (tag
-``legacy-reference``); the problems found in them are listed in
+The ``ldem`` package (``src/+ldem``) contains all the code. The original
+program it was rewritten from is kept in the git history (tag
+``legacy-reference``); the problems found in it are listed in
 ``docs/known-issues/KNOWN_ISSUES.md``.
 
 Running a simulation
@@ -29,10 +29,8 @@ Input and output
 .. mat:autofunction:: ldem.io.readCase
 .. mat:autofunction:: ldem.io.writeCase
 .. mat:autofunction:: ldem.io.writeTemplate
-.. mat:autofunction:: ldem.io.convertLegacyInput
 .. mat:autofunction:: ldem.io.parseCaseText
 .. mat:autofunction:: ldem.io.parseCaseJson
-.. mat:autofunction:: ldem.io.readInputFile
 .. mat:autofunction:: ldem.io.readRandomField
 .. mat:autofunction:: ldem.io.saveResults
 .. mat:autofunction:: ldem.io.exportAnsys
