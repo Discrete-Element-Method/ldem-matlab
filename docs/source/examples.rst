@@ -14,7 +14,7 @@ this page come from running them with the current code.
      - Size
      - Time
    * - ``example1_clamped_beam/``
-     - A beam clamped at both ends and loaded with a force at mid-span
+     - A beam clamped at both ends and loaded with a prescribed displacement at mid-span
      - 3,086 nodes
      - about 35 s
    * - ``tension_101/``
@@ -27,8 +27,8 @@ this page come from running them with the current code.
      - about 30 s for 50 steps
 
 Start with ``tension_101`` to learn the interface and with
-``example1_clamped_beam`` to see a model loaded with a force, described by a
-case file and checked against the original code.
+``example1_clamped_beam`` to see a model described by a case file and loaded
+with a prescribed displacement.
 
 Running an example
 ------------------
@@ -56,10 +56,12 @@ by git), or to ``outputFolder`` if that variable already exists:
 Example 1: beam clamped at both ends
 ------------------------------------
 
-A small beam of 5 x 5 x 50 modules of 1 mm, clamped at both ends and loaded at
-mid-span with a force that grows during 0.35 ms and then stays constant. It is
-the model of Rodrigo (branch ``dev_rodrigo``) and the first test loaded with a
-force instead of a displacement (``ldem.scenarios.ClampedBeam``, test 103).
+A small beam of 5 x 5 x 50 modules of 1 mm, clamped at both ends; the line of
+nodes at mid-span is pushed up with a constant velocity of 4 mm/s (a prescribed
+displacement). It is the model of Rodrigo (branch ``dev_rodrigo``),
+``ldem.scenarios.ClampedBeam`` (test 103) with ``loading = "displacement"``. The
+same scenario can also load the beam with a force (``loading = "force"``, the
+form that the regression tests compare with the original code).
 
 The model
 ~~~~~~~~~
@@ -78,8 +80,8 @@ The model
        z = 49.5 modules) are clamped: x, y and z held
    * - Load
      - The 5 centre nodes of the line at mid-span (z = 24.5 modules, y = 0.5 modules)
-       carry a force in +y of ``1000 N/s * min(t, 0.35 ms)`` each: 0.35 N per node,
-       1.75 N in total
+       are moved in +y to ``y0 + 4 mm/s * t`` (their y-motion is held): 11.2 um at
+       the end
    * - Material
      - E = 3.87 GPa, Poisson's ratio 0.25, density 1500 kg/m\ :sup:`3`, fracture
        energy 0.5 N/m, critical distance 4.5 mm; mass-proportional damping of
@@ -119,11 +121,11 @@ The scenario and the load are the lines of the ``[scenario]`` section of
 .. code-block:: text
 
    [scenario]
-   type          = "clamped_beam"
-   force_rate    = 1000 N/s
-   ramp_time     = 0.35 ms
-   load_position = "midspan"
-   load_height   = 0.5 modules
+   type             = "clamped_beam"
+   loading          = "displacement"
+   loading_velocity = 4 mm/s
+   load_position    = "midspan"
+   load_height      = 0.5 modules
 
 The same test can be written without a scenario class, with supports and loads.
 It gives the same results as ``ldem.scenarios.ClampedBeam`` (the tests check it):
@@ -150,10 +152,9 @@ It gives the same results as ``ldem.scenarios.ClampedBeam`` (the tests check it)
    y             = 0.5
    z             = "mid - 0.5"
    direction     = "y"
-   type          = "force"
-   time_function = "ramp"
-   rate          = 1000 N/s
-   until         = 0.35 ms
+   type          = "displacement"
+   time_function = "linear"
+   rate          = 4 mm/s
 
 Reading the results
 ~~~~~~~~~~~~~~~~~~~
@@ -173,28 +174,29 @@ What you should see
 .. figure:: _static/examples/clamped_beam_reaction.png
    :width: 90%
 
-   Force carried by the clamped ends. It rises with the load, overshoots to 1.94 N
-   and settles at the total applied force.
+   Force carried by the clamped ends. It grows almost linearly with the imposed
+   displacement, from 0 to 2.96 N at the end; the ripples of the first 0.5 ms are
+   the dynamic response to the sudden start of the motion.
 
 .. figure:: _static/examples/clamped_beam_displacement.png
    :width: 90%
 
-   Vertical displacement of the two control nodes: a peak of 6.7 um at 0.46 ms and
-   about 6.3 um at the end.
+   Vertical displacement of the two control nodes. Node 2441 is on the load line
+   and follows the prescribed 4 mm/s exactly (11.2 um at the end); node 884, a grid
+   node at mid-span, reaches 11.0 um.
 
 .. figure:: _static/examples/clamped_beam_energy.png
    :width: 90%
 
    Energies. The external work equals the sum of the internal energies.
 
-* The reaction settles at 1.75 N, the 1.75 N applied in total: the beam is in
-  equilibrium at the end. The overshoot (1.94 N) and the oscillation are the
-  dynamic response, which the damping removes.
-* With these values the beam stays elastic: at the end 18,085 bars are intact and
-  none is damaged or broken.
-* The energy balance closes: the external work of 5.76 uJ is the elastic energy
-  (5.48 uJ) plus the energy dissipated by damping (0.28 uJ); the kinetic energy is
-  about zero and the balance is below 1e-13 J.
+* The imposed displacement drives the beam: the reaction is the force needed to
+  move the load line, and it keeps growing while the bars are intact.
+* At the end damage has started: 66 bars have softened (none is broken) and
+  18,019 are intact.
+* The energy balance closes: the external work of 17.37 uJ is the elastic energy
+  (16.60 uJ) plus the damage energy (0.68 uJ) and the energy dissipated by damping
+  (0.08 uJ); the kinetic energy is about zero and the balance is below 2e-10 J.
 
 Try other values
 ~~~~~~~~~~~~~~~~
@@ -205,32 +207,33 @@ Every key of the case file can be changed, or swept without editing the file
 .. code-block:: matlab
 
    >> summary = ldem.sweep('examples/example1_clamped_beam/case.ldem', ...
-          Vary = {'scenario.force_rate', ["10 kN/s" "30 kN/s" "100 kN/s"]}, Formats = "mat");
+          Vary = {'scenario.loading_velocity', ["4 mm/s" "20 mm/s"]}, Formats = "mat");
 
-With the original value (1 kN/s) no bar is damaged. Ten times more force already
-breaks the beam; each run takes about 50 s:
+Each run takes about 50 s:
 
 .. list-table::
    :header-rows: 1
    :widths: 30 40 30
 
-   * - Force rate
+   * - Velocity
      - Damaged bars (including broken)
      - Broken bars
-   * - 10 kN/s
-     - 5,728
-     - 3,500
-   * - 30 kN/s
-     - 5,653
-     - 3,348
-   * - 100 kN/s
-     - 4,737
-     - 2,729
+   * - 4 mm/s
+     - 66
+     - 0
+   * - 20 mm/s
+     - 889
+     - 540
 
-After the failure the loaded nodes keep being pushed by the force and move freely,
-so the displacements of these runs are not meaningful; the damage counts are. Each run
-has its own folder (``run_001``, ...) with its results and its resolved ``case.ldem``,
-and the table is also saved as ``sweep_summary.csv``.
+At 20 mm/s the beam is pushed to 56 um and breaks. Because the motion of the load
+line is prescribed, the displacements stay meaningful after the failure, which is
+not the case when the beam is loaded with a force (the loaded nodes then move
+freely once the beam breaks). Each run has its own folder (``run_001``, ...) with
+its results and its resolved ``case.ldem``, and the table is also saved as
+``sweep_summary.csv``.
+
+To load the beam with a force instead, set ``loading = "force"`` with ``force_rate``
+and ``ramp_time`` (a force of ``force_rate * min(t, ramp_time)`` on each loaded node).
 
 Other changes to try in ``case.ldem``: ``law = "linear_elastic"`` (no damage at all),
 another ``cv`` or ``seed`` in ``[material.scatter]`` for another random field, or

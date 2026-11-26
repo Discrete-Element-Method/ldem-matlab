@@ -37,13 +37,21 @@ classdef TestWriteCase < LdemTestCase
             testCase.verifyEqual(c.scenario.rampTime, 2e-4);
             testCase.verifyEqual(c.scenario.loadPosition, 7.5);
             testCase.verifyEqual(c.scenario.loadHeight, 1.5);
+            testCase.verifyEqual(c.scenario.loading, "force");
+
+            scenario = ldem.scenarios.ClampedBeam(loading = "displacement", loadingVelocity = 2.5e-3);
+            ldem.io.writeCase(path, p, scenario);
+            c = ldem.io.readCase(path);
+            testCase.verifyEqual(c.scenario.loading, "displacement");
+            testCase.verifyEqual(c.scenario.loadingVelocity, 2.5e-3);
         end
 
         function defaultsAndMidspanRoundTrip(testCase)
             p = ldem.Parameters(testId = 103);
             path = fullfile(testCase.Folder, "defaults.ldem");
             text = ldem.io.writeCase(path, p);
-            testCase.verifySubstring(text, 'load_position = "midspan"');
+            testCase.verifyMatches(text, 'load_position\s+=\s+"midspan"');
+            testCase.verifyMatches(text, 'loading +=\s+"force"');
             c = ldem.io.readCase(path);
             testCase.verifyEqual(c.params.toStruct(), p.toStruct());
             testCase.verifyTrue(isnan(c.scenario.loadPosition));

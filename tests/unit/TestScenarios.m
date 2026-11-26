@@ -155,6 +155,51 @@ classdef TestScenarios < LdemTestCase
             testCase.verifyEqual(reaction, [0, sum(find(mesh.fixed(:, 2))), 0]);
         end
 
+        function clampedBeamWithDisplacementHoldsAndMovesTheLoadLine(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            mesh = ldem.mesh.buildMesh(params);
+            scenario = ldem.scenarios.ClampedBeam(loading="displacement", loadingVelocity=2e-3);
+            [~, history] = ldem.material.buildBarProperties(mesh, params);
+            state = ldem.solver.initialState(mesh, history);
+            loaded = scenario.loadedNodes(mesh.nodes0, params);
+            clamped = scenario.clampedNodes(mesh.nodes0, params);
+
+            fixed = scenario.fixedDofs(mesh.nodes0, params);
+            testCase.verifyTrue(all(fixed(loaded, 2)), 'The displaced load line is held in y.');
+            testCase.verifyFalse(any(fixed(loaded, [1 3]), 'all'), 'x and z of the load line stay free.');
+            testCase.verifyEqual(fixed(clamped, :), true(nnz(clamped), 3));
+            testCase.verifyEqual(nnz(fixed), 3 * nnz(clamped) + nnz(loaded));
+
+            for t = [1e-4, 1e-3]
+                state.time = t;
+                state = scenario.applyLoads(state, mesh, params);
+                testCase.verifyEqual(state.displacement(loaded, 2), ...
+                    mesh.nodes0(loaded, 2) + 2e-3 * t, 'AbsTol', 1e-15);
+            end
+            other = state.displacement;
+            other(loaded, 2) = mesh.nodes0(loaded, 2);
+            testCase.verifyEqual(other, mesh.nodes0, 'Only y of the loaded nodes may move.');
+            testCase.verifyEqual(state.appliedForce, zeros(size(state.appliedForce)), ...
+                'A displacement scenario must not apply forces.');
+        end
+
+        function clampedBeamReactionLeavesOutTheDisplacedLoadLine(testCase)
+            params = ldem.Parameters(testId=103, nModules=[4 4 11]);
+            scenario = ldem.scenarios.ClampedBeam(loading="displacement");
+            mesh = ldem.mesh.buildMesh(params, scenario);
+            [~, history] = ldem.material.buildBarProperties(mesh, params);
+            state = ldem.solver.initialState(mesh, history);
+            state.force(:, 2) = (1:params.nNodes).';
+            reaction = scenario.reactions(state, mesh, params);
+            clamped = scenario.clampedNodes(mesh.nodes0, params);
+            testCase.verifyEqual(reaction, [0, sum(find(clamped)), 0]);
+        end
+
+        function clampedBeamRejectsAnUnknownLoading(testCase)
+            testCase.verifyError(@() ldem.scenarios.ClampedBeam(loading="pressure"), ...
+                'MATLAB:validators:mustBeMember');
+        end
+
         function clampedBeamReportsALoadLineThatMatchesNoNode(testCase)
             params = ldem.Parameters(testId=103, nModules=[4 4 11]);
             nodes = ldem.mesh.buildNodes(params.nModules, params.moduleLength);

@@ -1,8 +1,8 @@
-%% Example 1: beam clamped at both ends, loaded with a force at mid-span
+%% Example 1: beam clamped at both ends, loaded with a prescribed displacement at mid-span
 % Model by Rodrigo (branch dev_rodrigo). A small beam of 5 x 5 x 50 modules
-% of 1 mm is clamped at both ends and loaded at mid-span with a force that
-% grows during 0.35 ms and then stays constant. The run simulates 2.8 ms
-% (8000 steps).
+% of 1 mm is clamped at both ends and the line of nodes at mid-span is
+% pushed in +y with a constant velocity of 4 mm/s (a prescribed
+% displacement). The run simulates 2.8 ms (8000 steps).
 %
 % What it does
 %   1. Reads the case file case.ldem of this folder (test 103, see
@@ -32,10 +32,11 @@ params = c.params;
 fprintf('Clamped beam with %d nodes, %d steps.\n', params.nNodes, params.nSteps);
 
 %% 2. Scenario
-% The [scenario] section of case.ldem sets the load: a force of
-% forceRate*min(t, rampTime) newtons on each node of the loaded line. Change
-% the values here (or in the case file) to try other loads, for example
-% scenario.forceRate = 2000.
+% The [scenario] section of case.ldem sets the load: loading = "displacement"
+% moves each node of the loaded line to y0 + loadingVelocity*t. Change the
+% values here (or in the case file) to try other loads, for example
+% scenario.loadingVelocity = 8e-3, or load with a force instead:
+% scenario.loading = "force" (forceRate*min(t, rampTime) newtons per node).
 scenario = c.scenario;
 
 %% 3. Run

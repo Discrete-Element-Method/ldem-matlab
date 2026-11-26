@@ -121,8 +121,8 @@ Rules of the format:
    * - ``[scenario]``
      - ``type`` (``uniaxial_tension``, ``four_point_bending``,
        ``clamped_beam`` or ``custom``, see below) and the properties of that scenario in snake_case,
-       for example ``force_rate``, ``ramp_time``, ``load_position`` (``"midspan"``
-       is allowed)
+       for example ``loading`` (``"force"`` or ``"displacement"``), ``force_rate``,
+       ``loading_velocity``, ``load_position`` (``"midspan"`` is allowed)
    * - ``[[monitor.node]]``
      - One element per control node: ``id`` (node number) or ``at = [x, y, z]``
        (position in modules, the nearest node is used), and ``name``
@@ -262,10 +262,11 @@ Tests available
    in modules from each end); the defaults need a beam longer than about 70
    modules. See ``examples/beam_102``.
 ``testId = 103``
-   Beam clamped at both ends, loaded at mid-span with a force that grows
-   linearly and then stays constant (``ldem.scenarios.ClampedBeam``). It is the
-   only test loaded with a force instead of a displacement. See
-   ``examples/example1_clamped_beam``.
+   Beam clamped at both ends, loaded at mid-span (``ldem.scenarios.ClampedBeam``).
+   ``loading = "force"`` (the default) applies a force that grows linearly and
+   then stays constant (``force_rate``, ``ramp_time``); ``loading = "displacement"``
+   moves the loaded line with a prescribed velocity (``loading_velocity``). See
+   ``examples/example1_clamped_beam``, which uses the displacement.
 
 To add a new test, create a subclass of ``ldem.scenarios.Scenario`` (see :doc:`model`).
 

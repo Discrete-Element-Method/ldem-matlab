@@ -47,9 +47,15 @@ classdef TestExamples < LdemTestCase
 
             data = load(fullfile(folder, "output", "results.mat"));
             results = data.results;
-            % Five loaded nodes carry 1000 N/s * 0.35 ms = 0.35 N each; the
-            % clamped ends carry the total once the beam is at rest.
-            testCase.verifyEqual(results.reactions.force(end, 2), 5 * 0.35, 'RelTol', 5e-2);
+            % The load line is pushed up by 4 mm/s * 2.8 ms = 11.2 um; the
+            % clamped ends carry about 3 N and a few bars soften.
+            loaded = results.params.controlNodes(1);
+            testCase.verifyEqual(results.controlNodes.displacement(end, 1, 2) - results.mesh.nodes0(loaded, 2), ...
+                4e-3 * results.controlNodes.time(end), 'RelTol', 1e-9);
+            testCase.verifyEqual(results.reactions.force(end, 2), 2.96, 'RelTol', 5e-2);
+            counts = results.snapshots.barCounts(end, :);
+            testCase.verifyGreaterThan(counts(2) + counts(3), 0, ...
+                'The example is meant to show the onset of damage, but no bar softened.');
             e = results.energy;
             testCase.verifyLessThan(max(abs(e.balance)) / e.external(end), 1e-2);
         end

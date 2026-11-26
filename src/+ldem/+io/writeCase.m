@@ -150,7 +150,9 @@ rows = {"type", quote(spec.name), doc("scenario.type")};
 for prop = string(fieldnames(spec.units)).'
     key = lower(regexprep(prop, '([a-z0-9])([A-Z])', '$1_$2'));
     value = scenario.(prop);
-    if isnan(value) && isfield(spec.keywords, prop)
+    if spec.units.(prop) == "text"
+        valueText = quote(string(value));
+    elseif isnan(value) && isfield(spec.keywords, prop)
         valueText = quote(spec.keywords.(prop));
     else
         valueText = q(value, spec.units.(prop));

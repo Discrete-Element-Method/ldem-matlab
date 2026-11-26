@@ -195,6 +195,23 @@ classdef TestReadCase < LdemTestCase
             writeTextFile(path, [lines; "[scenario]"; "type = ""clamped_beam"""; "load_position = ""midspan"""]);
             c = ldem.io.readCase(path);
             testCase.verifyTrue(isnan(c.scenario.loadPosition));
+            testCase.verifyEqual(c.scenario.loading, "force");
+        end
+
+        function clampedBeamCanBeLoadedWithADisplacement(testCase)
+            lines = testCase.minimal();
+            lines = lines(~startsWith(lines, ["[scenario]" "type"]));
+            path = fullfile(testCase.Folder, "beam.ldem");
+            writeTextFile(path, [lines; "[scenario]"; "type = ""clamped_beam"""; ...
+                "loading = ""Displacement"""; "loading_velocity = 2 mm/s"]);
+            c = ldem.io.readCase(path);
+            testCase.verifyEqual(c.scenario.loading, "displacement");
+            testCase.verifyEqual(c.scenario.loadingVelocity, 2e-3, 'AbsTol', 1e-18);
+
+            writeTextFile(path, [lines; "[scenario]"; "type = ""clamped_beam"""; "loading = ""pressure"""]);
+            testCase.verifyError(@() ldem.io.readCase(path), 'ldem:case:invalidValue');
+            writeTextFile(path, [lines; "[scenario]"; "type = ""clamped_beam"""; "loading = 3"]);
+            testCase.verifyError(@() ldem.io.readCase(path), 'ldem:case:badValue');
         end
 
         function everyScenarioCanBeNamed(testCase)

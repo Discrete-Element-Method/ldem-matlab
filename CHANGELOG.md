@@ -13,6 +13,10 @@
   regression tests still compare with that program.
 
 ### Changed
+- Example 1 (`example1_clamped_beam`) is loaded with a prescribed displacement at mid-span
+  (4 mm/s) instead of a force; its *Examples* page, figures and test are updated.
+- `ClampedBeam.reactions` sums the bar forces on the clamped nodes only (the same values
+  as before for the force loading).
 - `beam_102/runBeam.m` and `example1_clamped_beam/runClampedBeam.m` read their `case.ldem`,
   the only description of each model.
 - The *Usage* page starts with running a case file (`ldem.run`), then MATLAB code; the
@@ -26,6 +30,11 @@
   the force-rate sweep of the clamped beam in the *Examples* page change accordingly.
 
 ### Added
+- `ldem.scenarios.ClampedBeam` can load the beam with a prescribed displacement:
+  `loading = "displacement"` moves the load line to `y0 + loadingVelocity*t` and holds its
+  y-motion, so the beam can be driven past its peak load (the work is counted in the external
+  energy). `loading = "force"`, the default, keeps the force of test 103 unchanged. Case files
+  accept word-valued scenario keys (`loading = "displacement"`, registry dimension `text`).
 - Documentation of the examples (user guide page *Examples*, in the four languages): the model, files,
   how to run and what to expect of the bi-clamped beam (`example1_clamped_beam`), the uniaxial prism
   (`tension_101`) and the four-point bending beam (`beam_102`), with figures and numbers taken from

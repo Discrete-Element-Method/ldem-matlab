@@ -1,7 +1,7 @@
-# Example 1: beam clamped at both ends, loaded with a force at mid-span
+# Example 1: beam clamped at both ends, loaded with a prescribed displacement at mid-span
 
 format  = 1                                                                         # Version of the case-file format (currently 1).
-title   = "Example 1: beam clamped at both ends, loaded with a force at mid-span"   # Free text title of the case.
+title   = "Example 1: beam clamped at both ends, loaded with a prescribed displacement at mid-span"   # Free text title of the case.
 authors = ["Rodrigo"]                                                               # Names of the authors.
 
 [mesh]
@@ -37,11 +37,11 @@ switch_time  = 15 ms                 # Time at which the damping changes from in
 constitutive = 0 s                   # Stiffness-proportional damping inside the bar law.
 
 [scenario]
-type          = "clamped_beam"   # Test case (see ldem.scenarios.registry); its other keys follow.
-force_rate    = 1000 N/s         # Property forceRate of ldem.scenarios.ClampedBeam.
-ramp_time     = 0.35 ms          # Property rampTime of ldem.scenarios.ClampedBeam.
-load_position = "midspan"        # Property loadPosition of ldem.scenarios.ClampedBeam.
-load_height   = 0.5 modules      # Property loadHeight of ldem.scenarios.ClampedBeam.
+type             = "clamped_beam"   # Test case (see ldem.scenarios.registry); its other keys follow.
+loading          = "displacement"   # Property loading of ldem.scenarios.ClampedBeam: "force" or "displacement".
+loading_velocity = 4 mm/s           # Property loadingVelocity of ldem.scenarios.ClampedBeam (+y, constant).
+load_position    = "midspan"        # Property loadPosition of ldem.scenarios.ClampedBeam.
+load_height      = 0.5 modules      # Property loadHeight of ldem.scenarios.ClampedBeam.
 
 [[monitor.node]]
 name = "node_2441"   # Label of the node.

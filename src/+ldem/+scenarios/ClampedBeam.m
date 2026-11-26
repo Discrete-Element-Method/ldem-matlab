@@ -1,16 +1,31 @@
 classdef ClampedBeam < ldem.scenarios.Scenario
-    %CLAMPEDBEAM  Beam clamped at both ends with a force at mid-span (TEST 103).
+    %CLAMPEDBEAM  Beam clamped at both ends, loaded at mid-span (TEST 103).
     %
     %   The beam axis is z. The centre nodes of the first and of the last layer
     %   of modules are clamped (x, y and z fixed). A line of centre nodes at
-    %   mid-span, on the face y = 0, is loaded with a force in the +y direction
-    %   that grows linearly with time and stays constant after rampTime:
+    %   mid-span, on the face y = 0, is loaded in the +y direction. The
+    %   property loading selects how:
     %
-    %       F(t) = forceRate * min(t, rampTime)      [N on each loaded node]
+    %     "force"         (default) A force that grows linearly with time and
+    %                     stays constant after rampTime:
     %
-    %   This test loads with a force, not with a displacement: the scenario
-    %   sets state.appliedForce and the solver counts its work in the external
-    %   energy.
+    %                         F(t) = forceRate * min(t, rampTime)   [N on each loaded node]
+    %
+    %                     The scenario sets state.appliedForce and the solver
+    %                     counts its work in the external energy.
+    %
+    %     "displacement"  A prescribed displacement at constant velocity:
+    %
+    %                         y(t) = y0 + loadingVelocity * t       [m]
+    %
+    %                     The y-motion of the loaded nodes is held by the solver
+    %                     (like the load points of ldem.scenarios.FourPointBending),
+    %                     so the beam can be driven past its peak load; the work
+    %                     done on it is counted in the external energy.
+    %
+    %   forceRate and rampTime only apply to "force", loadingVelocity only to
+    %   "displacement". In both cases the reaction is the force carried by the
+    %   clamped ends.
     %
     %   The load position is measured in modules from the first clamped end
     %   and selects the line of centre nodes closest to it (a window of +-0.01
@@ -20,6 +35,7 @@ classdef ClampedBeam < ldem.scenarios.Scenario
     %
     %   Create it with other values using
     %       scenario = ldem.scenarios.ClampedBeam(forceRate=2000, rampTime=2e-4);
+    %       scenario = ldem.scenarios.ClampedBeam(loading="displacement", loadingVelocity=4e-3);
     %
     %   Origin: the bi-clamped beam model of Rodrigo (branch dev_rodrigo), which
     %   modified BOUND, CALOAD and ANSYS of the original code under TEST 102.
@@ -31,11 +47,18 @@ classdef ClampedBeam < ldem.scenarios.Scenario
     end
 
     properties
-        % Force growth rate on each loaded node [N/s].
+        % How the load line is loaded: "force" or "displacement".
+        loading (1,1) string {mustBeMember(loading, ["force" "displacement"])} = "force"
+
+        % Force growth rate on each loaded node [N/s] (loading = "force").
         forceRate (1,1) double {mustBeFinite} = 1000
 
-        % Time at which the force stops growing and stays constant [s].
+        % Time at which the force stops growing and stays constant [s]
+        % (loading = "force").
         rampTime (1,1) double {mustBePositive, mustBeFinite} = 0.00035
+
+        % Velocity of the loaded nodes along +y [m/s] (loading = "displacement").
+        loadingVelocity (1,1) double {mustBeFinite} = 400e-5
 
         % Position of the load along the beam, from the first clamped end
         % [modules]. NaN means mid-span, (L-1)/2 - 0.5.
@@ -58,7 +81,25 @@ classdef ClampedBeam < ldem.scenarios.Scenario
         end
 
         function fixed = fixedDofs(obj, nodes0, params)
-            %FIXEDDOFS  The two clamped end layers (x, y and z of their centre nodes).
+            %FIXEDDOFS  The clamped end layers, and the load line when it is displaced.
+            %
+            %   x, y and z of the centre nodes of both end layers. With
+            %   loading = "displacement" also y of the loaded nodes (their
+            %   y-motion is then imposed by applyLoads).
+            arguments
+                obj (1,1) ldem.scenarios.ClampedBeam
+                nodes0 (:,3) double
+                params (1,1) ldem.Parameters
+            end
+            fixed = false(size(nodes0));
+            fixed(obj.clampedNodes(nodes0, params), :) = true;
+            if obj.loading == "displacement"
+                fixed(obj.loadedNodes(nodes0, params), 2) = true;
+            end
+        end
+
+        function clamped = clampedNodes(obj, nodes0, params)
+            %CLAMPEDNODES  Logical vector of the centre nodes of both end layers.
             arguments
                 obj (1,1) ldem.scenarios.ClampedBeam %#ok<INUSA>
                 nodes0 (:,3) double
@@ -70,12 +111,11 @@ classdef ClampedBeam < ldem.scenarios.Scenario
             tol = 0.01;
             atStart = (z > (0.5 - tol) * LCO) & (z < (0.5 + tol) * LCO);
             atEnd   = (z > (L1 - 0.5 - tol) * LCO) & (z < (L1 - 0.5 + tol) * LCO);
-            fixed = false(size(nodes0));
-            fixed(atStart | atEnd, :) = true;
+            clamped = atStart | atEnd;
         end
 
         function loaded = loadedNodes(obj, nodes0, params)
-            %LOADEDNODES  Logical vector of the nodes that carry the force.
+            %LOADEDNODES  Logical vector of the nodes that carry the load.
             %
             %   The centre nodes of the line at loadPosition along the beam
             %   and loadHeight above the face y = 0. Throws
@@ -104,7 +144,10 @@ classdef ClampedBeam < ldem.scenarios.Scenario
         end
 
         function state = applyLoads(obj, state, mesh, params)
-            %APPLYLOADS  Set the force of the current time on the loaded nodes.
+            %APPLYLOADS  Set the force or the displacement of the current time.
+            %
+            %   "force": forceRate*min(t, rampTime) in +y on each loaded node.
+            %   "displacement": moves the loaded nodes to y0 + loadingVelocity*t.
             arguments
                 obj (1,1) ldem.scenarios.ClampedBeam
                 state (1,1) struct
@@ -112,22 +155,28 @@ classdef ClampedBeam < ldem.scenarios.Scenario
                 params (1,1) ldem.Parameters
             end
             loaded = obj.loadedNodes(mesh.nodes0, params);
-            state.appliedForce(:) = 0;
-            state.appliedForce(loaded, 2) = obj.forceRate * min(state.time, obj.rampTime);
+            if obj.loading == "displacement"
+                state.displacement(loaded, 2) = mesh.nodes0(loaded, 2) + obj.loadingVelocity * state.time;
+            else
+                state.appliedForce(:) = 0;
+                state.appliedForce(loaded, 2) = obj.forceRate * min(state.time, obj.rampTime);
+            end
         end
 
         function reaction = reactions(obj, state, mesh, params)
             %REACTIONS  Force that the beam exerts on the clamped ends, [Rx Ry Rz].
             %
-            %   The sum of the bar forces on the clamped degrees of freedom. At
-            %   rest it equals the total applied force.
+            %   The sum of the bar forces on the centre nodes of both end
+            %   layers (the held y of a displaced load line is not included).
+            %   At rest it equals the total load on the beam.
             arguments
-                obj (1,1) ldem.scenarios.ClampedBeam %#ok<INUSA>
+                obj (1,1) ldem.scenarios.ClampedBeam
                 state (1,1) struct
                 mesh (1,1) struct
-                params (1,1) ldem.Parameters %#ok<INUSA>
+                params (1,1) ldem.Parameters
             end
-            reaction = sum(state.force .* mesh.fixed, 1);
+            clamped = obj.clampedNodes(mesh.nodes0, params);
+            reaction = sum(state.force(clamped, :), 1);
         end
     end
 end

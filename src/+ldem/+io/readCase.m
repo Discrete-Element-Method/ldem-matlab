@@ -632,7 +632,13 @@ for e = entries
             ldem.schema.suggest(e.key, snake), strjoin(["type" snake], ', '));
     end
     prop = propNames(j);
-    if isfield(spec.keywords, prop) && isstring(e.value) && isscalar(e.value) ...
+    if spec.units.(prop) == "text"
+        if ~(isstring(e.value) && isscalar(e.value))
+            ldem.schema.raise('ldem:case:badValue', where, ...
+                'Expected a text in quotes, found %s.', describe(e.value));
+        end
+        args.(prop) = lower(strtrim(e.value));
+    elseif isfield(spec.keywords, prop) && isstring(e.value) && isscalar(e.value) ...
             && lower(strtrim(e.value)) == spec.keywords.(prop)
         args.(prop) = NaN;
     else

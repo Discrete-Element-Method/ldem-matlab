@@ -6,7 +6,7 @@ results to expect, is in the user guide: *Examples* (`docs/source/examples.rst`)
 
 | Folder | What it shows | Size | Time |
 |--------|---------------|------|------|
-| `example1_clamped_beam/` | Beam clamped at both ends and loaded with a force at mid-span (model by Rodrigo) | 3,086 nodes | about 35 s |
+| `example1_clamped_beam/` | Beam clamped at both ends and loaded with a prescribed displacement at mid-span (model by Rodrigo) | 3,086 nodes | about 35 s |
 | `tension_101/` | Small prism under a uniaxial load, with damage and every output format | 74 nodes | about 6 s |
 | `beam_102/` | The 101x41x21-node four-point bending beam of the paper (demo of the first 50 steps) | 166,961 nodes | about 30 s for 50 steps; about 20 h for the full run |
 
@@ -50,6 +50,8 @@ The random field of the critical strain of the two beams is generated in memory 
 `[material.scatter]` section of their `case.ldem` (coefficient of variation 0.05,
 correlated over 3 modules); no file is needed.
 
-With the default values the clamped beam stays elastic (no bar softens). Raise the
-force (`force_rate` in `case.ldem`, `forceRate` in the scenario) or lower the fracture
-energy to see damage.
+The mid-span line of the clamped beam is pushed up with a constant velocity of 4 mm/s
+(`loading = "displacement"`, `loading_velocity` in `case.ldem`); at the end a few bars
+have started to soften. Raise the velocity (20 mm/s breaks the beam) or lower the
+fracture energy to see more damage, or set `loading = "force"` to load it with a force
+(`force_rate`, `ramp_time`) instead.

@@ -11,7 +11,7 @@ function reg = registry()
 %     name       Name used in the case file, "type = ..." (snake_case).
 %     className  Name of the class, a subclass of ldem.scenarios.Scenario.
 %     testId     Value of the constant property testId of the class.
-%     units      Struct mapping each property a case file may set to its dimension (key in the file: snake_case, forceRate is force_rate).
+%     units      Struct mapping each property a case file may set to its dimension (key in the file: snake_case, forceRate is force_rate); the dimension "text" marks a word, checked by the class (ClampedBeam.loading: "force" or "displacement").
 %     keywords   Struct mapping a property to a word that stands for NaN in the file (ClampedBeam.loadPosition: "midspan").
 %
 %   Output:
@@ -36,8 +36,8 @@ reg(end+1) = makeEntry("four_point_bending", "ldem.scenarios.FourPointBending", 
 reg(end+1) = makeEntry("custom", "ldem.scenarios.Declarative", 900, struct(), struct());
 
 reg(end+1) = makeEntry("clamped_beam", "ldem.scenarios.ClampedBeam", 103, ...
-    struct('forceRate', "forcerate", 'rampTime', "time", ...
-           'loadPosition', "modules", 'loadHeight', "modules"), ...
+    struct('loading', "text", 'forceRate', "forcerate", 'rampTime', "time", ...
+           'loadingVelocity', "velocity", 'loadPosition', "modules", 'loadHeight', "modules"), ...
     struct('loadPosition', "midspan"));
 end
 
